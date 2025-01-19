@@ -178,7 +178,7 @@ func NewRPC(efContext *EasyFramework, name string, handler interface{}) {
 		log.Println("NewRPC(): handler has an invalid signature, the error output should be a struct")
 		hasEfError := false
 
-		if errorTypeof.Name() == "Problem" {
+		if errorTypeof.Name() == "Problem" { // Problem struct can either be returned directly or embedded one level deep inside a different struct
 			hasEfError = true
 		}
 
@@ -214,10 +214,10 @@ func NewRPC(efContext *EasyFramework, name string, handler interface{}) {
 type ErrorID string
 
 const (
-	ERROR_NONE                ErrorID = "error_none"
-	ERROR_PROCEDURE_NOT_FOUND         = "error_procedure_not_found"
-	ERROR_JSON_UNMARSHAL              = "error_json_unmarshal"
-	ERROR_INTERNAL                    = "error_internal"
+	ERROR_NONE                ErrorID = "none"
+	ERROR_PROCEDURE_NOT_FOUND         = "procedure_not_found"
+	ERROR_JSON_UNMARSHAL              = "json_unmarshal_failed"
+	ERROR_INTERNAL                    = "internal_error"
 )
 
 type Problem struct {
