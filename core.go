@@ -1,6 +1,8 @@
 package easyframework
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,17 +19,19 @@ type Context struct {
 }
 
 type Procedure struct {
-	Identifier string
-	Procedure  reflect.Value
-	InputType  reflect.Type
-	OutputType reflect.Type
-	ErrorType  reflect.Type
-	Calls      uint64
+	Identifier            string
+	Procedure             reflect.Value
+	InputType             reflect.Type
+	OutputType            reflect.Type
+	ErrorType             reflect.Type
+	Calls                 uint64
+	AuthorizationRequired bool
 }
 
-func Initialize() Context {
+func Initialize(port int) Context {
 	return Context{
 		Procedures: make(map[string]Procedure),
+		Port:       port,
 	}
 
 }
@@ -47,7 +51,7 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	now := time.Now()
 
 	procedureName := strings.TrimLeft(request.RequestURI, "/")
-	requestID := GenerateSixteenDigitCode()
+	requestID := NewID128().String()
 	log.Printf("Incoming request: %v (%v)", procedureName, requestID)
 	procedure, procedureFound := ef.Procedures[procedureName]
 	if !procedureFound {
@@ -62,6 +66,16 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	requestContext := RequestContext{
 		RequestID: requestID,
 	}
+	if procedure.AuthorizationRequired {
+		if !Authenticate(&requestContext, writer, request) {
+			RJson(writer, 400, Problem{
+				ErrorID: ERROR_AUTHENTICATION_FAILED,
+				Message: "Bad session token",
+			})
+			return
+		}
+	}
+
 	requestInput := reflect.New(procedure.InputType)
 	err := json.Unmarshal(data, requestInput.Interface())
 	if err != nil {
@@ -87,7 +101,7 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	}
 
 	errorCode := ERROR_NONE
-	LookupErrorCode := func(value reflect.Value) { // Problem code should be at most one layer deep in an anonymous (nested) struct
+	LookupErrorCode := func(value reflect.Value) { // Problem struct should be at most one layer deep in an anonymous (nested) struct. Or be the struct itself
 		_type := value.Type()
 		for fieldI := 0; fieldI < value.NumField(); fieldI += 1 {
 			fieldValue := value.Field(fieldI)
@@ -126,24 +140,31 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 }
 
 type RequestContext struct {
-	RequestID string
+	RequestID    string
+	SessionToken string
 }
 
-func NewRPC(efContext *Context, name string, handler interface{}) {
-	_, identifierIsInUse := efContext.Procedures[name]
+type NewRPCParams struct {
+	Name                  string
+	Handler               interface{}
+	AuthorizationRequired bool
+}
+
+func NewRPC(efContext *Context, params NewRPCParams) {
+	_, identifierIsInUse := efContext.Procedures[params.Name]
 	if identifierIsInUse {
-		log.Printf("NewRPC(): procedure identifier already in use: %v", name)
+		log.Printf("NewRPC(): procedure identifier already in use: %v", params.Name)
 		panic("Cannot continue further!")
 	}
 
-	handlerTypeof := reflect.TypeOf(handler)
+	handlerTypeof := reflect.TypeOf(params.Handler)
 	if handlerTypeof.Kind() != reflect.Func {
-		log.Printf("NewRPC(): non-procedure passed as handler to %v", name)
+		log.Printf("NewRPC(): non-procedure passed as handler to %v", params.Name)
 		panic("Cannot continue further!")
 	}
 
 	if handlerTypeof.NumIn() != 2 {
-		log.Println("NewRPC(): input signature is not correct, expected (*EF_RequestContext, (any type)) as input signature", name)
+		log.Println("NewRPC(): input signature is not correct, expected (*EF_RequestContext, (any type)) as input signature", params.Name)
 		panic("Cannot continue further!")
 	}
 
@@ -156,7 +177,7 @@ func NewRPC(efContext *Context, name string, handler interface{}) {
 	}
 
 	if !contextTypeofValidated {
-		log.Println("NewRPC(): handler has an invalid signature, the first argument should be *EF_RequestContext")
+		log.Println("NewRPC(): handler has an invalid signature, the first argument should be *RequestContext")
 		panic("Cannot continue further!")
 	}
 
@@ -201,23 +222,25 @@ func NewRPC(efContext *Context, name string, handler interface{}) {
 	}
 
 	procedure := Procedure{
-		Identifier: name,
-		Procedure:  reflect.ValueOf(handler),
-		InputType:  inputTypeof,
-		OutputType: outputTypeof,
-		ErrorType:  errorTypeof,
+		Identifier:            params.Name,
+		Procedure:             reflect.ValueOf(params.Handler),
+		InputType:             inputTypeof,
+		OutputType:            outputTypeof,
+		ErrorType:             errorTypeof,
+		AuthorizationRequired: params.AuthorizationRequired,
 	}
 
-	efContext.Procedures[name] = procedure
+	efContext.Procedures[params.Name] = procedure
 }
 
 type ErrorID string
 
 const (
-	ERROR_NONE                ErrorID = "none"
-	ERROR_PROCEDURE_NOT_FOUND         = "procedure_not_found"
-	ERROR_JSON_UNMARSHAL              = "json_unmarshal_failed"
-	ERROR_INTERNAL                    = "internal_error"
+	ERROR_NONE                  ErrorID = "none"
+	ERROR_PROCEDURE_NOT_FOUND           = "procedure_not_found"
+	ERROR_JSON_UNMARSHAL                = "json_unmarshal_failed"
+	ERROR_INTERNAL                      = "internal_error"
+	ERROR_AUTHENTICATION_FAILED         = "authentication_failed"
 )
 
 type Problem struct {
@@ -226,5 +249,32 @@ type Problem struct {
 }
 
 func StartServer(efContext *Context) {
+	log.Printf("%v procedures registered", len(efContext.Procedures))
+	log.Printf("Listen of port %v", efContext.Port)
 	http.ListenAndServe(fmt.Sprintf(":%v", efContext.Port), efContext)
+}
+
+type ID128 [16]byte
+type ID256 [32]byte
+
+func (id ID128) String() string {
+	return base64.URLEncoding.EncodeToString(id[:])
+}
+
+func (id ID256) String() string {
+	return base64.URLEncoding.EncodeToString(id[:])
+}
+
+func NewID128() ID128 {
+	var id ID128
+
+	rand.Read(id[:])
+	return id
+}
+
+func NewID256() ID256 {
+	var id ID256
+
+	rand.Read(id[:])
+	return id
 }

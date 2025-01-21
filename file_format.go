@@ -1,6 +1,7 @@
 package easyframework
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -18,17 +19,12 @@ const (
 
 type FieldID int16
 
-func Pack[T any](target *T) []byte {
+func Pack[T any](target *T) ([]byte, error) {
 	var buffer Buffer
 
-	valueOf := reflect.ValueOf(*target)
-	if valueOf.IsZero() {
-		return nil
-	}
+	err := _Pack(&buffer, reflect.TypeOf(*target), reflect.ValueOf(*target), -1)
 
-	_Pack(&buffer, reflect.TypeOf(*target), reflect.ValueOf(*target), -1)
-
-	return buffer.Buffer[:buffer.Index]
+	return buffer.Buffer[:buffer.Index], err
 }
 
 type StructFieldData struct {
@@ -117,7 +113,7 @@ func PreprocessStruct(theStruct reflect.Type) {
 	preprocessedStructs[theStruct] = structMapping
 }
 
-func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, fieldID int) {
+func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, fieldID int) error {
 	if fieldID > 0 {
 		CopyToBuffer(buffer, FORMAT_TOKEN_FIELD_ID)
 		CopyToBuffer(buffer, FieldID(fieldID))
@@ -142,9 +138,9 @@ func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, f
 	case reflect.Uint64:
 		CopyToBuffer(buffer, uint64(targetValue.Int()))
 	case reflect.Float32:
-		CopyToBuffer(buffer, float32(targetValue.Int()))
+		CopyToBuffer(buffer, float32(targetValue.Float()))
 	case reflect.Float64:
-		CopyToBuffer(buffer, float64(targetValue.Int()))
+		CopyToBuffer(buffer, float64(targetValue.Float()))
 	case reflect.Complex64:
 		CopyToBuffer(buffer, complex64(targetValue.Complex()))
 	case reflect.Complex128:
@@ -156,7 +152,7 @@ func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, f
 	case reflect.String:
 		str := ([]byte)(targetValue.String())
 		if uint64(len(str)) > 0xffffffff {
-			panic("String is too big!")
+			return errors.New(fmt.Sprintf("%v: String is too big!", targetType.Name()))
 		}
 		CopyToBuffer(buffer, uint32(len(str)))
 		CopyToBufferRaw(buffer, unsafe.Pointer(&str[0]), len(str))
@@ -178,9 +174,11 @@ func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, f
 
 		CopyToBuffer(buffer, FORMAT_TOKEN_END) // TODO: Don't write this token if that's our root struct (efficiency lol)
 	default:
-		log.Println(targetType.Kind().String())
-		panic("Type is unsupported")
+		log.Println("Type: ", targetType.Kind().String())
+		panic("Impossible: type is unsupported")
 	}
+
+	return nil
 }
 
 func Unpack[T any](data []byte, target *T) error {
