@@ -1,7 +1,7 @@
 package easyframework
 
-import "C"
 import (
+	"log"
 	"math/rand"
 	"unsafe"
 )
@@ -19,8 +19,22 @@ func GenerateSixteenDigitCode() string {
 	return string(result[:])
 }
 
-func Memcopy(dst, src unsafe.Pointer, size int) {
-	C.memcpy(dst, src, size)
+func Memcopy(dest, src unsafe.Pointer, len int) unsafe.Pointer {
+	cnt := len >> 3
+	var i int = 0
+	for i = 0; i < cnt; i++ {
+		var pdest *uint64 = (*uint64)(unsafe.Pointer(uintptr(dest) + uintptr(8*i)))
+		var psrc *uint64 = (*uint64)(unsafe.Pointer(uintptr(src) + uintptr(8*i)))
+		*pdest = *psrc
+	}
+	left := len & 7
+	for i = 0; i < left; i++ {
+		var pdest *uint8 = (*uint8)(unsafe.Pointer(uintptr(dest) + uintptr(8*cnt+i)))
+		var psrc *uint8 = (*uint8)(unsafe.Pointer(uintptr(src) + uintptr(8*cnt+i)))
+
+		*pdest = *psrc
+	}
+	return dest
 }
 
 type Buffer struct {
@@ -40,8 +54,10 @@ func BufferGrowAtLeast(buffer *Buffer, minimumSize int) {
 	}
 	newBuffer := make([]byte, newSize)
 
-	Memcopy(unsafe.Pointer(&newBuffer[0]), unsafe.Pointer(&oldBuffer[0]), oldSize)
 	buffer.Buffer = newBuffer
+	if len(oldBuffer) > 0 {
+		Memcopy(unsafe.Pointer(&newBuffer[0]), unsafe.Pointer(&oldBuffer[0]), oldSize)
+	}
 }
 
 func CopyToBufferRaw(buffer *Buffer, pointer unsafe.Pointer, size int) {
@@ -61,4 +77,6 @@ func CopyToBuffer[T any](buffer *Buffer, thing T) {
 
 	Memcopy(unsafe.Pointer(&buffer.Buffer[buffer.Index]), unsafe.Pointer(&thing), size)
 	buffer.Index += size
+
+	log.Println("Buffer now", buffer.Buffer[:buffer.Index])
 }

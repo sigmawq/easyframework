@@ -1,55 +1,26 @@
 package main
 
 import (
-	ef "easyframework/easyframework"
+	ef "easyframework"
 	"log"
 )
 
-type HelloWorldRequest struct {
-	Data1 string
-	Data2 int
-}
-
-func GetUsers(ef *ef.RequestContext, request HelloWorldRequest) (users []User, problem ef.Problem) {
-	users = append(users, User{
-		Name: "John",
-		Age:  60,
-	})
-
-	users = append(users, User{
-		Name: "Ann",
-		Age:  40,
-	})
-
-	users = append(users, User{
-		Name: "Jack",
-		Age:  14,
-	})
-
-	return
-}
-
-func Login(ef *ef.RequestContext) {
-
+type Substruct struct {
+	D float32
 }
 
 type User struct {
-	Name       string
-	Age        int  `id:"1"`
-	IsRetarded bool `id:"2"`
+	Age       int32     `id:"1"`
+	Dead      bool      `id:"2"`
+	Cringe    bool      `id:"3"`
+	Substruct Substruct `id:"4"`
 }
 
 func main() {
-	server := ef.Initialize()
-	server.Port = 10000
-
-	ef.NewRPC(&server, "getUsers", GetUsers)
-
-	theUser := User{
-		Name: "Jack",
-		Age:  14,
+	user := User{
+		Age:  44,
+		Dead: true,
 	}
-	log.Println(ef.Pack(theUser))
-
-	ef.StartServer(&server)
+	objectBytes := ef.Pack(&user)
+	log.Println(objectBytes)
 }

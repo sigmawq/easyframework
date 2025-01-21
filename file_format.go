@@ -4,31 +4,42 @@ import (
 	"log"
 	"reflect"
 	"strconv"
-	"unsafe"
 )
 
-type EasyFormatToken int8
+type TokenType int8
 
 const (
-	EASY_FORMAT_TOKEN_INVALID  = 0
-	EASY_FORMAT_TOKEN_FIELD_ID = 1
-	EASY_FORMAT_TOKEN_END      = 2
+	FORMAT_TOKEN_INVALID  TokenType = 0
+	FORMAT_TOKEN_FIELD_ID TokenType = 1
+	FORMAT_TOKEN_END      TokenType = 2
 )
 
-func Pack(target any) []byte {
-	buffer := Buffer{}
-	_Pack(&buffer, reflect.TypeOf(target), reflect.ValueOf(target), -1)
+type FieldID int16
+
+func Pack[T any](target *T) []byte {
+	var buffer Buffer
+
+	valueOf := reflect.ValueOf(*target)
+	if valueOf.IsZero() {
+		return nil
+	}
+
+	_Pack(&buffer, reflect.TypeOf(*target), reflect.ValueOf(*target), -1)
 
 	return buffer.Buffer[:buffer.Index]
 }
 
 type StructFieldData struct {
-	FieldID int
+	FieldIndex int
 }
 
 var preprocessedStructs map[reflect.Type]map[int]StructFieldData
 
 func PreprocessStruct(theStruct reflect.Type) {
+	if preprocessedStructs == nil {
+		preprocessedStructs = make(map[reflect.Type]map[int]StructFieldData, 0)
+	}
+
 	structMapping := make(map[int]StructFieldData)
 	for i := 0; i < theStruct.NumField(); i += 1 {
 		field := theStruct.Field(i)
@@ -50,9 +61,12 @@ func PreprocessStruct(theStruct reflect.Type) {
 
 		isTypeValid := false
 		switch field.Type.Kind() {
-		case reflect.Bool:
-			fallthrough
+
 		case reflect.Int:
+			panic("Raw integer type is not supported, we need to know the exact size of your variable")
+		case reflect.Uint:
+			panic("Raw integer type is not supported, we need to know the exact size of your variable")
+		case reflect.Bool:
 			fallthrough
 		case reflect.Int8:
 			fallthrough
@@ -61,8 +75,6 @@ func PreprocessStruct(theStruct reflect.Type) {
 		case reflect.Int32:
 			fallthrough
 		case reflect.Int64:
-			fallthrough
-		case reflect.Uint:
 			fallthrough
 		case reflect.Uint8:
 			fallthrough
@@ -96,49 +108,45 @@ func PreprocessStruct(theStruct reflect.Type) {
 		}
 
 		structMapping[int(id)] = StructFieldData{
-			FieldID: i,
+			FieldIndex: i,
 		}
 	}
 
+	preprocessedStructs[theStruct] = structMapping
 }
 
 func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, fieldID int) {
 	if fieldID > 0 {
-		CopyToBuffer(buffer, fieldID)
+		CopyToBuffer(buffer, FORMAT_TOKEN_FIELD_ID)
+		CopyToBuffer(buffer, FieldID(fieldID))
 	}
 	switch targetType.Kind() {
 	case reflect.Bool:
-		fallthrough
-	case reflect.Int:
-		fallthrough
+		CopyToBuffer(buffer, targetValue.Bool())
 	case reflect.Int8:
-		fallthrough
+		CopyToBuffer(buffer, int8(targetValue.Int()))
 	case reflect.Int16:
-		fallthrough
+		CopyToBuffer(buffer, int16(targetValue.Int()))
 	case reflect.Int32:
-		fallthrough
+		CopyToBuffer(buffer, int32(targetValue.Int()))
 	case reflect.Int64:
-		fallthrough
-	case reflect.Uint:
-		fallthrough
+		CopyToBuffer(buffer, int64(targetValue.Int()))
 	case reflect.Uint8:
-		fallthrough
+		CopyToBuffer(buffer, uint8(targetValue.Int()))
 	case reflect.Uint16:
-		fallthrough
+		CopyToBuffer(buffer, uint16(targetValue.Int()))
 	case reflect.Uint32:
-		fallthrough
+		CopyToBuffer(buffer, uint32(targetValue.Int()))
 	case reflect.Uint64:
-		fallthrough
+		CopyToBuffer(buffer, uint64(targetValue.Int()))
 	case reflect.Float32:
-		fallthrough
+		CopyToBuffer(buffer, float32(targetValue.Int()))
 	case reflect.Float64:
-		fallthrough
+		CopyToBuffer(buffer, float64(targetValue.Int()))
 	case reflect.Complex64:
-		fallthrough
+		CopyToBuffer(buffer, complex64(targetValue.Complex()))
 	case reflect.Complex128:
-		source := targetValue.Pointer()
-		sourceSize := targetType.Size()
-		CopyToBufferRaw(buffer, unsafe.Pointer(source), int(sourceSize))
+		CopyToBuffer(buffer, complex128(targetValue.Complex()))
 	case reflect.Array:
 		panic("not yet implemented")
 	case reflect.Slice:
@@ -153,16 +161,21 @@ func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, f
 		}
 
 		for fieldID, fieldData := range structData {
-			fieldType := targetType.Field(fieldData.FieldID)
-			fieldValue := targetValue.Field(fieldData.FieldID)
-			_Pack(buffer, fieldType, fieldValue, fieldID)
+			fieldType := targetType.Field(fieldData.FieldIndex)
+			fieldValue := targetValue.Field(fieldData.FieldIndex)
+
+			if !fieldValue.IsZero() {
+				_Pack(buffer, fieldType.Type, fieldValue, fieldID)
+			}
 		}
+
+		CopyToBuffer(buffer, FORMAT_TOKEN_END)
 	default:
 		log.Println(targetType.Kind().String())
 		panic("Type is unsupported")
 	}
 }
 
-func Unpack(data []byte) {
-
+func Unpack[T any](data []byte, target *T) error {
+	return nil
 }

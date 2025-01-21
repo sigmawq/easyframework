@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type EasyFramework struct {
+type Context struct {
 	Procedures map[string]Procedure
 	Port       int
 }
@@ -25,8 +25,8 @@ type Procedure struct {
 	Calls      uint64
 }
 
-func Initialize() EasyFramework {
-	return EasyFramework{
+func Initialize() Context {
+	return Context{
 		Procedures: make(map[string]Procedure),
 	}
 
@@ -43,7 +43,7 @@ func RJson[T any](w http.ResponseWriter, status int, value T) {
 	fmt.Fprintf(w, string(data))
 }
 
-func (ef *EasyFramework) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	now := time.Now()
 
 	procedureName := strings.TrimLeft(request.RequestURI, "/")
@@ -129,7 +129,7 @@ type RequestContext struct {
 	RequestID string
 }
 
-func NewRPC(efContext *EasyFramework, name string, handler interface{}) {
+func NewRPC(efContext *Context, name string, handler interface{}) {
 	_, identifierIsInUse := efContext.Procedures[name]
 	if identifierIsInUse {
 		log.Printf("NewRPC(): procedure identifier already in use: %v", name)
@@ -143,7 +143,7 @@ func NewRPC(efContext *EasyFramework, name string, handler interface{}) {
 	}
 
 	if handlerTypeof.NumIn() != 2 {
-		log.Println("NewRPC(): input signature is not correct, expected (*RequestContext, (any type)) as input signature", name)
+		log.Println("NewRPC(): input signature is not correct, expected (*EF_RequestContext, (any type)) as input signature", name)
 		panic("Cannot continue further!")
 	}
 
@@ -156,7 +156,7 @@ func NewRPC(efContext *EasyFramework, name string, handler interface{}) {
 	}
 
 	if !contextTypeofValidated {
-		log.Println("NewRPC(): handler has an invalid signature, the first argument should be *RequestContext")
+		log.Println("NewRPC(): handler has an invalid signature, the first argument should be *EF_RequestContext")
 		panic("Cannot continue further!")
 	}
 
@@ -186,7 +186,7 @@ func NewRPC(efContext *EasyFramework, name string, handler interface{}) {
 			for fieldI := 0; fieldI < errorTypeof.NumField(); fieldI += 1 {
 				field := errorTypeof.Field(fieldI)
 				if field.Anonymous {
-					if field.Type.Name() == "Problem" {
+					if field.Type.Name() == "EF_Problem" {
 						hasEfError = true
 						break
 					}
@@ -225,6 +225,6 @@ type Problem struct {
 	Message string
 }
 
-func StartServer(efContext *EasyFramework) {
+func StartServer(efContext *Context) {
 	http.ListenAndServe(fmt.Sprintf(":%v", efContext.Port), efContext)
 }
