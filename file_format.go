@@ -1,9 +1,11 @@
 package easyframework
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"strconv"
+	"unsafe"
 )
 
 type TokenType int8
@@ -152,7 +154,12 @@ func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, f
 	case reflect.Slice:
 		panic("not yet implemented")
 	case reflect.String:
-		panic("not yet implemented")
+		str := ([]byte)(targetValue.String())
+		if uint64(len(str)) > 0xffffffff {
+			panic("String is too big!")
+		}
+		CopyToBuffer(buffer, uint32(len(str)))
+		CopyToBufferRaw(buffer, unsafe.Pointer(&str[0]), len(str))
 	case reflect.Struct:
 		structData, hasStructData := preprocessedStructs[targetType]
 		if !hasStructData {
@@ -169,7 +176,7 @@ func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, f
 			}
 		}
 
-		CopyToBuffer(buffer, FORMAT_TOKEN_END)
+		CopyToBuffer(buffer, FORMAT_TOKEN_END) // TODO: Don't write this token if that's our root struct (efficiency lol)
 	default:
 		log.Println(targetType.Kind().String())
 		panic("Type is unsupported")
@@ -177,5 +184,228 @@ func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, f
 }
 
 func Unpack[T any](data []byte, target *T) error {
+	buffer := Buffer{
+		Buffer: data,
+	}
+	return _Unpack(&buffer, reflect.TypeOf(target).Elem(), reflect.ValueOf(target).Elem())
+}
+
+type UnpackError struct {
+	Position uint64
+	Message  string
+}
+
+func (unpackError *UnpackError) Error() string {
+	return fmt.Sprintf("Failed to unpack: %v (Position: %v)", unpackError.Message, unpackError.Position)
+}
+
+func _Unpack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value) error {
+	log.Println(targetType.Kind())
+	switch targetType.Kind() {
+	case reflect.Bool:
+		var value bool
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected bool, got EOF",
+			}
+		}
+
+		targetValue.SetBool(value)
+	case reflect.Int8:
+		var value int8
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected int8, got EOF",
+			}
+		}
+
+		targetValue.SetInt(int64(value))
+	case reflect.Int16:
+		var value int16
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected int16, got EOF",
+			}
+		}
+
+		targetValue.SetInt(int64(value))
+	case reflect.Int32:
+		var value int32
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected int32, got EOF",
+			}
+		}
+
+		targetValue.SetInt(int64(value))
+	case reflect.Int64:
+		var value int64
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected int64, got EOF",
+			}
+		}
+
+		targetValue.SetInt(int64(value))
+	case reflect.Uint8:
+		var value uint8
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected uint8, got EOF",
+			}
+		}
+
+		targetValue.SetInt(int64(value))
+	case reflect.Uint16:
+		var value uint16
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected uint16, got EOF",
+			}
+		}
+
+		targetValue.SetInt(int64(value))
+	case reflect.Uint32:
+		var value uint32
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected uint32, got EOF",
+			}
+		}
+
+		targetValue.SetInt(int64(value))
+	case reflect.Uint64:
+		var value uint64
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected uint64, got EOF",
+			}
+		}
+
+		targetValue.SetInt(int64(value))
+	case reflect.Float32:
+		var value float32
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected float32, got EOF",
+			}
+		}
+
+		targetValue.SetFloat(float64(value))
+	case reflect.Float64:
+		var value float64
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected float64, got EOF",
+			}
+		}
+
+		targetValue.SetFloat(float64(value))
+	case reflect.Complex64:
+		var value complex64
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected complex64, got EOF",
+			}
+		}
+
+		targetValue.SetComplex(complex128(value))
+	case reflect.Complex128:
+		var value complex128
+		if !CopyFromBuffer(buffer, &value) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected complex128, got EOF",
+			}
+		}
+
+		targetValue.SetComplex(complex128(value))
+	case reflect.Array:
+		panic("not yet implemented")
+	case reflect.Slice:
+		panic("not yet implemented")
+	case reflect.String:
+		var stringLength uint32
+		if !CopyFromBuffer(buffer, &stringLength) {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "Expected string size (4 bytes), got EOF",
+			}
+		}
+		if stringLength == 0 {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  "String length is zero",
+			}
+		}
+
+		stringBuffer := make([]byte, stringLength)
+		CopyFromBufferRaw(buffer, unsafe.Pointer(&stringBuffer[0]), int(stringLength))
+		targetValue.SetString(string(stringBuffer))
+	case reflect.Struct:
+		structData, hasStructData := preprocessedStructs[targetType]
+		if !hasStructData {
+			PreprocessStruct(targetType)
+			structData = preprocessedStructs[targetType]
+		}
+
+		for {
+			var token TokenType
+			CopyFromBuffer(buffer, &token)
+			if token == FORMAT_TOKEN_END {
+				break
+			} else if token != FORMAT_TOKEN_FIELD_ID {
+				return &UnpackError{
+					Position: uint64(buffer.Index),
+					Message:  fmt.Sprintf("Expected field id token, got another token: %v", token),
+				}
+			}
+			var fieldID uint16
+			CopyFromBuffer(buffer, &fieldID)
+
+			if fieldID == 0 {
+				return &UnpackError{
+					Position: uint64(buffer.Index),
+					Message:  fmt.Sprint("Field ID is zero, but it should be greater than zero"),
+				}
+			}
+
+			fieldData, ok := structData[int(fieldID)]
+			if !ok { // We are skipping unknown fields, that's an error in structure mapping, but we don't want to fail just of a single such error
+				return &UnpackError{
+					Position: uint64(buffer.Index),
+					Message:  fmt.Sprintf("Unmapped ID: %v", fieldID),
+				}
+			}
+
+			if fieldData.FieldIndex >= targetValue.NumField() {
+				panic("Impossible: fieldIndex is not mapping a valid struct field")
+			}
+
+			fieldType := targetType.Field(fieldData.FieldIndex)
+			fieldValue := targetValue.Field(fieldData.FieldIndex)
+
+			err := _Unpack(buffer, fieldType.Type, fieldValue)
+			if err != nil {
+				return err
+			}
+		}
+	default:
+		log.Println(targetType.Kind().String())
+		panic("Type is unsupported")
+	}
+
 	return nil
 }

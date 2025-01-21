@@ -1,7 +1,6 @@
 package easyframework
 
 import (
-	"log"
 	"math/rand"
 	"unsafe"
 )
@@ -62,7 +61,7 @@ func BufferGrowAtLeast(buffer *Buffer, minimumSize int) {
 
 func CopyToBufferRaw(buffer *Buffer, pointer unsafe.Pointer, size int) {
 	if buffer.Index+size > len(buffer.Buffer) {
-		BufferGrowAtLeast(buffer, size)
+		BufferGrowAtLeast(buffer, len(buffer.Buffer)+size)
 	}
 
 	Memcopy(unsafe.Pointer(&buffer.Buffer[buffer.Index]), pointer, size)
@@ -72,11 +71,30 @@ func CopyToBufferRaw(buffer *Buffer, pointer unsafe.Pointer, size int) {
 func CopyToBuffer[T any](buffer *Buffer, thing T) {
 	size := int(unsafe.Sizeof(thing))
 	if buffer.Index+size > len(buffer.Buffer) {
-		BufferGrowAtLeast(buffer, size)
+		BufferGrowAtLeast(buffer, len(buffer.Buffer)+size)
 	}
 
 	Memcopy(unsafe.Pointer(&buffer.Buffer[buffer.Index]), unsafe.Pointer(&thing), size)
 	buffer.Index += size
+}
 
-	log.Println("Buffer now", buffer.Buffer[:buffer.Index])
+func CopyFromBufferRaw(buffer *Buffer, pointer unsafe.Pointer, size int) bool {
+	if buffer.Index+size > len(buffer.Buffer) {
+		return false
+	}
+
+	Memcopy(pointer, unsafe.Pointer(&buffer.Buffer[buffer.Index]), size)
+	buffer.Index += size
+	return true
+}
+
+func CopyFromBuffer[T any](buffer *Buffer, thing *T) bool {
+	size := int(unsafe.Sizeof(*thing))
+	if buffer.Index+size > len(buffer.Buffer) {
+		return false
+	}
+
+	Memcopy(unsafe.Pointer(thing), unsafe.Pointer(&buffer.Buffer[buffer.Index]), size)
+	buffer.Index += size
+	return true
 }
