@@ -1,0 +1,12 @@
+normie routing:
+    routing itself
+    query args
+    path args
+id128/256:
+    json marshal/unmarshal
+validator: 
+    validate request structs
+documentation generator:
+    some basic docgen for types that are mentioned in newrpc
+    
+    

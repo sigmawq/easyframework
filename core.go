@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/boltdb/bolt"
 	"io"
 	"log"
 	"net/http"
@@ -14,8 +15,10 @@ import (
 )
 
 type Context struct {
-	Procedures map[string]Procedure
-	Port       int
+	Procedures    map[string]Procedure
+	Port          int
+	Database      *bolt.DB
+	Authorization func(RequestContext, http.ResponseWriter, *http.Request) bool
 }
 
 type Procedure struct {
@@ -28,12 +31,17 @@ type Procedure struct {
 	AuthorizationRequired bool
 }
 
-func Initialize(port int) Context {
+func Initialize(databasePath string, port int) (Context, error) {
+	database, err := bolt.Open(databasePath, 0777, nil)
+	if err != nil {
+		return Context{}, err
+	}
+
 	return Context{
 		Procedures: make(map[string]Procedure),
 		Port:       port,
-	}
-
+		Database:   database,
+	}, nil
 }
 
 func RJson[T any](w http.ResponseWriter, status int, value T) {
@@ -86,10 +94,18 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	args := []reflect.Value{
-		reflect.ValueOf(&requestContext),
-		requestInput.Elem(),
+	var args []reflect.Value
+	if procedure.InputType != nil { // 2 input args (context, request) scenario
+		args = []reflect.Value{
+			reflect.ValueOf(&requestContext),
+			requestInput.Elem(),
+		}
+	} else { // 1 input arg (context only) scenario
+		args = []reflect.Value{
+			reflect.ValueOf(&requestContext),
+		}
 	}
+
 	returnValues := procedure.Procedure.Call(args)
 	var response reflect.Value
 	var problem reflect.Value
@@ -163,8 +179,8 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 		panic("Cannot continue further!")
 	}
 
-	if handlerTypeof.NumIn() != 2 {
-		log.Println("NewRPC(): input signature is not correct, expected (*EF_RequestContext, (any type)) as input signature", params.Name)
+	if handlerTypeof.NumIn() > 2 {
+		log.Println("NewRPC(): input signature is not correct, expected (*RequestContext, (any type) <- optional) as input signature", params.Name)
 		panic("Cannot continue further!")
 	}
 
@@ -181,7 +197,10 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 		panic("Cannot continue further!")
 	}
 
-	inputTypeof := handlerTypeof.In(1)
+	var inputTypeOf reflect.Type
+	if handlerTypeof.NumIn() == 2 {
+		inputTypeOf = handlerTypeof.In(1)
+	}
 
 	var outputTypeof reflect.Type
 	var errorTypeof reflect.Type
@@ -224,7 +243,7 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 	procedure := Procedure{
 		Identifier:            params.Name,
 		Procedure:             reflect.ValueOf(params.Handler),
-		InputType:             inputTypeof,
+		InputType:             inputTypeOf,
 		OutputType:            outputTypeof,
 		ErrorType:             errorTypeof,
 		AuthorizationRequired: params.AuthorizationRequired,
