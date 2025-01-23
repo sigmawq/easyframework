@@ -1,7 +1,12 @@
 package easyframework
 
 import (
+	"encoding/json"
+	"fmt"
+	"log"
 	"math/rand"
+	"net/http"
+	"runtime"
 	"unsafe"
 )
 
@@ -97,4 +102,37 @@ func CopyFromBuffer[T any](buffer *Buffer, thing *T) bool {
 	Memcopy(unsafe.Pointer(thing), unsafe.Pointer(&buffer.Buffer[buffer.Index]), size)
 	buffer.Index += size
 	return true
+}
+
+func GetTrace(callerHeight int) string {
+	_, file, no, _ := runtime.Caller(callerHeight)
+
+	start := 0
+	for i, char := range file {
+		if char == '\\' || char == '/' {
+			start = i + 1
+		}
+	}
+
+	if start < len(file) {
+		file = file[start:]
+	}
+
+	return fmt.Sprintf("%v:%v", file, no)
+}
+
+func GetCallerFunctionName(callerHeight int) string {
+	pc, _, _, _ := runtime.Caller(callerHeight)
+	return fmt.Sprintf("%v", runtime.FuncForPC(pc).Name())
+}
+
+func RJson[T any](w http.ResponseWriter, status int, value T) {
+	data, err := json.Marshal(value)
+	if err != nil {
+		log.Printf("Error while trying to marshal json to send it as response: %v", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	fmt.Fprintf(w, string(data))
 }

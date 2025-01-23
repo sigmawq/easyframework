@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -17,8 +18,23 @@ import (
 type Context struct {
 	Procedures    map[string]Procedure
 	Port          int
+	DatabasePath  string
 	Database      *bolt.DB
 	Authorization func(RequestContext, http.ResponseWriter, *http.Request) bool
+	StdoutLogging bool
+	FileLogging   bool
+	LogFile       *os.File
+}
+
+func (ctx Context) Write(bytes []byte) (int, error) {
+	str := fmt.Sprintf("[%v, %v, g%v] %v", time.Now().Format("2006-01-02T15:04:05.999Z"), GetTrace(4), curGoroutineID(), string(bytes))
+	if ctx.StdoutLogging {
+		fmt.Print(str)
+	}
+	if ctx.FileLogging {
+		ctx.LogFile.Write([]byte(str))
+	}
+	return len(bytes), nil
 }
 
 type Procedure struct {
@@ -31,28 +47,38 @@ type Procedure struct {
 	AuthorizationRequired bool
 }
 
-func Initialize(databasePath string, port int) (Context, error) {
-	database, err := bolt.Open(databasePath, 0777, nil)
-	if err != nil {
-		return Context{}, err
+func Initialize(ctx *Context) error {
+	ctx.Procedures = make(map[string]Procedure)
+
+	{ // Setup database
+		database, err := bolt.Open(ctx.DatabasePath, 0777, nil)
+		if err != nil {
+			return err
+		}
+
+		ctx.Database = database
 	}
 
-	return Context{
-		Procedures: make(map[string]Procedure),
-		Port:       port,
-		Database:   database,
-	}, nil
-}
+	// Setup logging
+	{
+		log.SetFlags(0)
 
-func RJson[T any](w http.ResponseWriter, status int, value T) {
-	data, err := json.Marshal(value)
-	if err != nil {
-		log.Printf("Error while trying to marshal json to send it as response: %v", err)
-		return
+		var file *os.File
+		var err error
+		if ctx.FileLogging {
+			filename := fmt.Sprintf("logs/log_%v", time.Now().Format("02-01-2006T15-04"))
+			file, err = os.Create(filename)
+			if err != nil {
+				panic("err")
+			}
+
+			ctx.LogFile = file
+		}
+
+		log.SetOutput(ctx)
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	fmt.Fprintf(w, string(data))
+
+	return nil
 }
 
 func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -84,18 +110,18 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 		}
 	}
 
-	requestInput := reflect.New(procedure.InputType)
-	err := json.Unmarshal(data, requestInput.Interface())
-	if err != nil {
-		RJson(writer, 400, Problem{
-			ErrorID: ERROR_JSON_UNMARSHAL,
-			Message: err.Error(),
-		})
-		return
-	}
-
 	var args []reflect.Value
 	if procedure.InputType != nil { // 2 input args (context, request) scenario
+		requestInput := reflect.New(procedure.InputType)
+		err := json.Unmarshal(data, requestInput.Interface())
+		if err != nil {
+			RJson(writer, 400, Problem{
+				ErrorID: ERROR_JSON_UNMARSHAL,
+				Message: err.Error(),
+			})
+			return
+		}
+
 		args = []reflect.Value{
 			reflect.ValueOf(&requestContext),
 			requestInput.Elem(),
@@ -274,15 +300,38 @@ func StartServer(efContext *Context) {
 }
 
 type ID128 [16]byte
-type ID256 [32]byte
 
 func (id ID128) String() string {
-	return base64.URLEncoding.EncodeToString(id[:])
+	return base64.StdEncoding.EncodeToString(id[:])
+}
+
+func (id ID128) MarshalJSON() ([]byte, error) {
+	var result [24]byte
+	base64.StdEncoding.Encode(result[:], id[:])
+	return json.Marshal(result[:])
+}
+
+func (id ID128) UnmarshalJSON(src []byte) error {
+	_, err := base64.StdEncoding.Decode(id[:], src)
+	return err
 }
 
 func (id ID256) String() string {
-	return base64.URLEncoding.EncodeToString(id[:])
+	return base64.StdEncoding.EncodeToString(id[:])
 }
+
+func (id ID256) MarshalJSON() ([]byte, error) {
+	var result [48]byte
+	base64.StdEncoding.Encode(result[:], id[:])
+	return json.Marshal(result[:])
+}
+
+func (id ID256) UnmarshalJSON(src []byte) error {
+	_, err := base64.StdEncoding.Decode(id[:], src)
+	return err
+}
+
+type ID256 [32]byte
 
 func NewID128() ID128 {
 	var id ID128

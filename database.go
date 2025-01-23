@@ -7,7 +7,7 @@ import (
 
 type BucketID string
 
-func NewBucket(ctx Context, bucketID BucketID) error {
+func NewBucket(ctx *Context, bucketID BucketID) error {
 	tx, err := ctx.Database.Begin(true)
 	if err != nil {
 		return err

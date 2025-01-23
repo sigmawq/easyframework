@@ -3,7 +3,6 @@ package main
 import (
 	ef "easyframework"
 	"fmt"
-	"log"
 	"time"
 )
 
@@ -25,6 +24,7 @@ type User struct {
 	Substruct  Substruct `id:"4"`
 	SomeString string    `id:"5"`
 	Type       UserType  `id:"6"`
+	Timestamp  uint64    `id:"7"`
 }
 
 type LoginRequest struct {
@@ -53,10 +53,7 @@ func Login(ctx *ef.RequestContext, request LoginRequest) (response LoginResponse
 	return
 }
 
-// TODO: Empty request signature
-type LogoutRequest struct{}
-
-func Logout(ctx *ef.RequestContext, request LogoutRequest) (problem ef.Problem) {
+func Logout(ctx *ef.RequestContext) (problem ef.Problem) {
 	return
 }
 
@@ -64,33 +61,48 @@ const (
 	BUCKET_USERS = "Users"
 )
 
-func ListAllBuckets(ctx *ef.RequestContext) (result string, problem ef.Problem) {
+func ListAllBuckets(ctx *ef.RequestContext) (result []interface{}, problem ef.Problem) {
 	tx, _ := efContext.Database.Begin(false)
 	bucket, _ := ef.GetBucket(tx, BUCKET_USERS)
-	ef.Iterate(bucket, func(key ef.ID128, user *User) bool {
-		fmt.Printf("[%v] %#v", user)
+
+	type Record[T any] struct {
+		ID     ef.ID128
+		Struct T
+	}
+
+	ef.Iterate(bucket, func(userID ef.ID128, user *User) bool {
+		result = append(result, Record[User]{
+			userID, *user,
+		})
 		return true
 	})
+
 	return
 }
 
 var efContext *ef.Context
 
 func main() {
-	context, err := ef.Initialize("db", 6969)
-	if err != nil {
-		log.Println(err)
-		return
+	efContext = &ef.Context{
+		Port:          6969,
+		DatabasePath:  "db",
+		Authorization: nil,
+		StdoutLogging: true,
+		FileLogging:   false,
 	}
-	efContext = &context
 
-	if true {
-		err := ef.NewBucket(context, BUCKET_USERS)
+	err := ef.Initialize(efContext)
+	if err != nil {
+		panic(err)
+	}
+
+	if false {
+		err := ef.NewBucket(efContext, BUCKET_USERS)
 		if err != nil {
 			panic(err)
 		}
 
-		tx, _ := context.Database.Begin(true)
+		tx, _ := efContext.Database.Begin(true)
 		defer tx.Rollback()
 
 		bucket, err := ef.GetBucket(tx, BUCKET_USERS)
@@ -134,20 +146,20 @@ func main() {
 		tx.Commit()
 	}
 
-	ef.NewRPC(&context, ef.NewRPCParams{
+	ef.NewRPC(efContext, ef.NewRPCParams{
 		Name:    "login",
 		Handler: Login,
 	})
 
-	ef.NewRPC(&context, ef.NewRPCParams{
+	ef.NewRPC(efContext, ef.NewRPCParams{
 		Name:    "logout",
 		Handler: Logout,
 	})
 
-	ef.NewRPC(&context, ef.NewRPCParams{
-		Name:    "listBucket",
+	ef.NewRPC(efContext, ef.NewRPCParams{
+		Name:    "listBuckets",
 		Handler: ListAllBuckets,
 	})
 
-	ef.StartServer(&context)
+	ef.StartServer(efContext)
 }

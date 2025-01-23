@@ -198,7 +198,6 @@ func (unpackError *UnpackError) Error() string {
 }
 
 func _Unpack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value) error {
-	log.Println(targetType.Kind())
 	switch targetType.Kind() {
 	case reflect.Bool:
 		var value bool
