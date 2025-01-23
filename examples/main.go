@@ -8,6 +8,7 @@ import (
 
 type Substruct struct {
 	D float32 `id:"1"`
+	E float32 `id:"2"`
 }
 
 type UserType int8
@@ -18,13 +19,15 @@ const (
 )
 
 type User struct {
-	Age        int32     `id:"1"`
-	Dead       bool      `id:"2"`
-	Cringe     bool      `id:"3"`
-	Substruct  Substruct `id:"4"`
-	SomeString string    `id:"5"`
-	Type       UserType  `id:"6"`
-	Timestamp  uint64    `id:"7"`
+	Age               int32        `id:"1"`
+	Dead              bool         `id:"2"`
+	Cringe            bool         `id:"3"`
+	Substruct         Substruct    `id:"4"`
+	SomeString        string       `id:"5"`
+	Type              UserType     `id:"6"`
+	Timestamp         uint64       `id:"7"`
+	PreferredNumbers  [2]int64     `id:"8"`
+	ArrayOfSubstructs [5]Substruct `id:"9"`
 }
 
 type LoginRequest struct {
@@ -96,7 +99,7 @@ func main() {
 		panic(err)
 	}
 
-	if false {
+	if true {
 		err := ef.NewBucket(efContext, BUCKET_USERS)
 		if err != nil {
 			panic(err)
@@ -117,6 +120,12 @@ func main() {
 				SomeString: "aaabbbcccddd",
 				Substruct:  Substruct{D: 444.666},
 				Type:       USER_TYPE_ADMIN,
+				PreferredNumbers: [2]int64{
+					1337, 1488,
+				},
+				ArrayOfSubstructs: [5]Substruct{
+					{100, 200},
+				},
 			}
 
 			user2 := User{

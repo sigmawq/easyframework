@@ -12,17 +12,19 @@ import (
 type TokenType int8
 
 const (
-	FORMAT_TOKEN_INVALID  TokenType = 0
-	FORMAT_TOKEN_FIELD_ID TokenType = 1
-	FORMAT_TOKEN_END      TokenType = 2
+	FORMAT_TOKEN_INVALID     TokenType = 0
+	FORMAT_TOKEN_FIELD_ID    TokenType = 1
+	FORMAT_TOKEN_END         TokenType = 2
+	FORMAT_TOKEN_ARRAY_INDEX TokenType = 3
 )
 
 type FieldID int16
+type ArrayIndex uint32
 
 func Pack[T any](target *T) ([]byte, error) {
 	var buffer Buffer
 
-	err := _Pack(&buffer, reflect.TypeOf(*target), reflect.ValueOf(*target), -1)
+	err := _Pack(&buffer, reflect.TypeOf(target).Elem(), reflect.ValueOf(target).Elem(), -1)
 
 	return buffer.Buffer[:buffer.Index], err
 }
@@ -113,6 +115,39 @@ func PreprocessStruct(theStruct reflect.Type) {
 	preprocessedStructs[theStruct] = structMapping
 }
 
+func IsSimpleType(_type reflect.Type) bool {
+	log.Println(_type)
+	simple := false
+	switch _type.Kind() {
+	case reflect.Bool:
+		fallthrough
+	case reflect.Int8:
+		fallthrough
+	case reflect.Int16:
+		fallthrough
+	case reflect.Int32:
+		fallthrough
+	case reflect.Int64:
+		fallthrough
+	case reflect.Uint8:
+		fallthrough
+	case reflect.Uint16:
+		fallthrough
+	case reflect.Uint32:
+		fallthrough
+	case reflect.Uint64:
+		fallthrough
+	case reflect.Float32:
+		fallthrough
+	case reflect.Float64:
+		fallthrough
+	case reflect.Complex128:
+		simple = true
+	}
+
+	return simple
+}
+
 func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, fieldID int) error {
 	if fieldID > 0 {
 		CopyToBuffer(buffer, FORMAT_TOKEN_FIELD_ID)
@@ -146,9 +181,28 @@ func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, f
 	case reflect.Complex128:
 		CopyToBuffer(buffer, complex128(targetValue.Complex()))
 	case reflect.Array:
-		panic("not yet implemented")
+		if IsSimpleType(targetType.Elem()) {
+			pointer := unsafe.Pointer(targetValue.Addr().Pointer())
+			elementSize := targetType.Elem().Size()
+			CopyToBufferRaw(buffer, pointer, int(elementSize)*targetValue.Len())
+		} else {
+			for i := 0; i < targetValue.Len(); i++ {
+				if targetValue.Index(i).IsZero() {
+					continue
+				}
+
+				CopyToBuffer(buffer, FORMAT_TOKEN_ARRAY_INDEX)
+				CopyToBuffer(buffer, ArrayIndex(i))
+				err := _Pack(buffer, targetType.Elem(), targetValue.Index(i), -1)
+				if err != nil {
+					return err
+				}
+			}
+
+			CopyToBuffer(buffer, FORMAT_TOKEN_END)
+		}
 	case reflect.Slice:
-		panic("not yet implemented")
+		panic("unimplemented")
 	case reflect.String:
 		str := ([]byte)(targetValue.String())
 		if uint64(len(str)) > 0xffffffff {
@@ -330,7 +384,39 @@ func _Unpack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value)
 
 		targetValue.SetComplex(complex128(value))
 	case reflect.Array:
-		panic("not yet implemented")
+		if IsSimpleType(targetType.Elem()) {
+			pointer := unsafe.Pointer(targetValue.Addr().Pointer())
+			elementSize := targetType.Elem().Size()
+			CopyFromBufferRaw(buffer, pointer, int(elementSize)*targetValue.Len())
+		} else {
+			for {
+				var token TokenType
+				CopyFromBuffer(buffer, &token)
+				if token == FORMAT_TOKEN_END {
+					break
+				} else if token != FORMAT_TOKEN_ARRAY_INDEX {
+					return &UnpackError{
+						Position: uint64(buffer.Index),
+						Message:  fmt.Sprintf("Expected FORMAT_TOKEN_ARRAY_INDEX got %v", token),
+					}
+				}
+
+				var arrayIndex ArrayIndex
+				CopyFromBuffer(buffer, &arrayIndex)
+
+				if arrayIndex < 0 || int(arrayIndex) >= targetValue.Len() {
+					return &UnpackError{
+						Position: uint64(buffer.Index),
+						Message:  fmt.Sprintf("Array length %v is outside of array bounds (%v)", arrayIndex, targetValue.Len()),
+					}
+				}
+
+				err := _Unpack(buffer, targetType.Elem(), targetValue.Index(int(arrayIndex)))
+				if err != nil {
+					return err
+				}
+			}
+		}
 	case reflect.Slice:
 		panic("not yet implemented")
 	case reflect.String:
