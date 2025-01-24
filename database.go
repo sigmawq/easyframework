@@ -87,3 +87,11 @@ func Iterate[V any](bucket *bolt.Bucket, iteratorProcedure func(key ID128, value
 		}
 	}
 }
+
+func WriteTx(ctx *Context) (*bolt.Tx, error) {
+	return ctx.Database.Begin(true)
+}
+
+func ReadTx(ctx *Context) (*bolt.Tx, error) {
+	return ctx.Database.Begin(false)
+}

@@ -47,11 +47,24 @@ type Procedure struct {
 	AuthorizationRequired bool
 }
 
-func Initialize(ctx *Context) error {
+type InitializeParams struct {
+	Port          int
+	StdoutLogging bool
+	FileLogging   bool
+	DatabasePath  string
+	Authorization func(*RequestContext, http.ResponseWriter, *http.Request) bool
+}
+
+func Initialize(ctx *Context, params InitializeParams) error {
 	ctx.Procedures = make(map[string]Procedure)
 
+	ctx.FileLogging = params.FileLogging
+	ctx.StdoutLogging = params.StdoutLogging
+	ctx.Authorization = params.Authorization
+	ctx.Port = params.Port
+
 	{ // Setup database
-		database, err := bolt.Open(ctx.DatabasePath, 0777, nil)
+		database, err := bolt.Open(params.DatabasePath, 0777, nil)
 		if err != nil {
 			return err
 		}
@@ -66,7 +79,7 @@ func Initialize(ctx *Context) error {
 		var file *os.File
 		var err error
 		if ctx.FileLogging {
-			filename := fmt.Sprintf("logs/log_%v", time.Now().Format("02-01-2006T15-04"))
+			filename := fmt.Sprintf("logs/log_%v", time.Now().Format("02_01_2006_15-04"))
 			file, err = os.Create(filename)
 			if err != nil {
 				panic("err")

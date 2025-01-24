@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	ef "github.com/sigmawq/easyframework"
+	"log"
 	"time"
 )
 
@@ -86,17 +87,18 @@ func ListAllBuckets(ctx *ef.RequestContext) (result []interface{}, problem ef.Pr
 var efContext *ef.Context
 
 func main() {
-	efContext = &ef.Context{
-		Port:          6969,
-		DatabasePath:  "db",
-		Authorization: nil,
+	efContext = new(ef.Context)
+	params := ef.InitializeParams{
+		Port:          6600,
 		StdoutLogging: true,
 		FileLogging:   false,
+		DatabasePath:  "db",
+		Authorization: nil,
 	}
-
-	err := ef.Initialize(efContext)
+	err := ef.Initialize(efContext, params)
 	if err != nil {
-		panic(err)
+		log.Println("Error while initializing EF:", err)
+		return
 	}
 
 	if true {
