@@ -1,4 +1,4 @@
-module easyframework
+module github.com/sigmawq/easyframework
 
 go 1.23.0
 

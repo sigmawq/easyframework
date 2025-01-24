@@ -20,7 +20,7 @@ type Context struct {
 	Port          int
 	DatabasePath  string
 	Database      *bolt.DB
-	Authorization func(RequestContext, http.ResponseWriter, *http.Request) bool
+	Authorization func(*RequestContext, http.ResponseWriter, *http.Request) bool
 	StdoutLogging bool
 	FileLogging   bool
 	LogFile       *os.File
@@ -101,13 +101,16 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 		RequestID: requestID,
 	}
 	if procedure.AuthorizationRequired {
-		if !Authenticate(&requestContext, writer, request) {
-			RJson(writer, 400, Problem{
-				ErrorID: ERROR_AUTHENTICATION_FAILED,
-				Message: "Bad session token",
-			})
-			return
+		if ef.Authorization != nil {
+			if !ef.Authorization(&requestContext, writer, request) {
+				RJson(writer, 400, Problem{
+					ErrorID: ERROR_AUTHENTICATION_FAILED,
+					Message: "Bad session token",
+				})
+				return
+			}
 		}
+
 	}
 
 	var args []reflect.Value

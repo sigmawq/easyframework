@@ -1,8 +1,8 @@
 package main
 
 import (
-	ef "easyframework"
 	"fmt"
+	ef "github.com/sigmawq/easyframework"
 	"time"
 )
 
