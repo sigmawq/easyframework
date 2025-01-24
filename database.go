@@ -46,18 +46,42 @@ func GetBucket(tx *bolt.Tx, id BucketID) (*bolt.Bucket, error) {
 	return bucket, nil
 }
 
-func GetByID[T any](ctx Context, bucketID BucketID, ID ID128) (T, error) {
-	var result T
+func GetByID[T any](ctx Context, bucketID BucketID, ID ID128) (*T, error) {
+	var result *T
 	err := ctx.Database.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketID))
 		if bucket == nil {
 			return BucketNotFoundError{}
 		}
 
-		return nil
+		_result := bucket.Get([]byte(ID[:]))
+		if _result == nil {
+			return nil
+		}
+
+		result = new(T)
+		return Unpack(_result, result)
 	})
 
 	return result, err
+}
+
+func InsertByID[T any](ctx Context, bucketID BucketID, ID ID128, value T) error {
+	err := ctx.Database.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucketID))
+		if bucket == nil {
+			return BucketNotFoundError{}
+		}
+
+		_result, err := Pack(&value)
+		if err != nil {
+			return err
+		}
+
+		return bucket.Put(ID[:], _result)
+	})
+
+	return err
 }
 
 func Insert[T any](bucket *bolt.Bucket, ID ID128, value T) error {

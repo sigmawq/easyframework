@@ -136,3 +136,28 @@ func RJson[T any](w http.ResponseWriter, status int, value T) {
 	w.WriteHeader(status)
 	fmt.Fprintf(w, string(data))
 }
+
+func SearchI[T any](array []T, eq func(v T) bool) (int, bool) {
+	for i, v := range array {
+		if eq(v) {
+			return i, true
+		}
+	}
+
+	return 0, false
+}
+
+func SearchPtr[T any](array []T, eq func(v *T) bool) (*T, bool) {
+	for i, _ := range array {
+		if eq(&array[i]) {
+			return &array[i], true
+		}
+	}
+
+	return nil, false
+}
+
+func Remove[T any](array []T, i int) []T {
+	array[i] = array[len(array)-1]
+	return array[:len(array)-1]
+}

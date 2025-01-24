@@ -1,9 +1,10 @@
 package easyframework
 
 import (
+	"bytes"
 	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/boltdb/bolt"
 	"io"
@@ -318,46 +319,102 @@ func StartServer(efContext *Context) {
 type ID128 [16]byte
 
 func (id ID128) String() string {
-	return base64.StdEncoding.EncodeToString(id[:])
+	table := [32]byte { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6' }
+	var str [len(id) * 2]byte 
+	k := 0
+	for i := 0; i < len(id); i++ {
+		low4bits := id[i] & 0b00001111
+		lowChar := table[low4bits]
+
+		high4bits := (id[i] & 0b11110000) >> 4
+		highChar := table[high4bits]
+		
+		str[k] = highChar
+		str[k + 1] = lowChar
+		k += 2
+	}
+	
+	return string(str[:])
 }
 
-func (id ID128) MarshalJSON() ([]byte, error) {
-	var result [24]byte
-	base64.StdEncoding.Encode(result[:], id[:])
-	return json.Marshal(result[:])
+func (id *ID128) FromString(str string) error {
+	table := [255]byte { // Sub 1 when using it to get the value, zero value is used to indicate an absent characher
+		97: 1,
+		98: 2,
+		99: 3,
+		100: 4,
+		101: 5,
+		102: 6,
+		103: 7,
+		104: 8,
+		105: 9,
+		106: 10,
+		107: 11,
+		108: 12,
+		109: 13,
+		110: 14,
+		111: 15,
+		112: 16,
+		113: 17,
+		114: 18,
+		115: 19,
+		116: 20,
+		117: 21,
+		118: 22,
+		119: 23,
+		120: 24,
+		121: 25,
+		122: 26,
+		49: 27,
+		50: 28,
+		51: 29,
+		52: 30,
+		53: 31,
+		54: 32,
+	}
+	if len(str) != (len(*id) * 2) {
+		return errors.New("ID128: Wrong size")
+	}
+	
+	data := ([]byte)(str)
+	k := 0
+	for i := 0; i <= len(data) - 1; i += 2 {
+		highChar := data[i]
+		lowChar := data[i+1]
+		
+		highValue := table[highChar]
+		lowValue := table[lowChar]
+		if highValue == 0 || lowValue == 0 {
+			return errors.New("Invalid character in base32 encoding!")
+		}
+
+		id[k] = ((highValue - 1) << 4) | (lowValue - 1)
+		k += 1
+	}
+	
+	return nil
 }
 
-func (id ID128) UnmarshalJSON(src []byte) error {
-	_, err := base64.StdEncoding.Decode(id[:], src)
+func (id *ID128) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(id.String()))
+}
+
+func (id *ID128) UnmarshalJSON(src []byte) error {
+	if bytes.Equal(src, []byte("null")) {
+		return nil // no error
+	}
+	var strValue string
+	var err error
+	err = json.Unmarshal(src, &strValue)
+	if err != nil {
+		return err
+	}
+	err = id.FromString(strValue)
 	return err
 }
-
-func (id ID256) String() string {
-	return base64.StdEncoding.EncodeToString(id[:])
-}
-
-func (id ID256) MarshalJSON() ([]byte, error) {
-	var result [48]byte
-	base64.StdEncoding.Encode(result[:], id[:])
-	return json.Marshal(result[:])
-}
-
-func (id ID256) UnmarshalJSON(src []byte) error {
-	_, err := base64.StdEncoding.Decode(id[:], src)
-	return err
-}
-
-type ID256 [32]byte
 
 func NewID128() ID128 {
 	var id ID128
-
-	rand.Read(id[:])
-	return id
-}
-
-func NewID256() ID256 {
-	var id ID256
 
 	rand.Read(id[:])
 	return id

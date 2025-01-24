@@ -116,7 +116,6 @@ func PreprocessStruct(theStruct reflect.Type) {
 }
 
 func IsSimpleType(_type reflect.Type) bool {
-	log.Println(_type)
 	simple := false
 	switch _type.Kind() {
 	case reflect.Bool:
@@ -228,7 +227,7 @@ func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, f
 
 		CopyToBuffer(buffer, FORMAT_TOKEN_END) // TODO: Don't write this token if that's our root struct (efficiency lol)
 	default:
-		log.Println("Type: ", targetType.Kind().String())
+		log.Printf("Type: %v/%v", targetType.Name(), targetType.Kind())
 		panic("Impossible: type is unsupported")
 	}
 
