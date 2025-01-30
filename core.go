@@ -106,7 +106,8 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 
 	procedureName := strings.TrimLeft(request.RequestURI, "/")
 	requestID := NewID128().String()
-	log.Printf("Incoming request: %v (%v)", procedureName, requestID)
+	data, _ := io.ReadAll(request.Body)
+	log.Printf("Incoming request: %v (%v): %v", procedureName, requestID, data)
 	procedure, procedureFound := ef.Procedures[procedureName]
 	if !procedureFound {
 		RJson(writer, 400, Problem{
@@ -115,7 +116,6 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 		log.Println("[Procedure not found]")
 		return
 	}
-	data, _ := io.ReadAll(request.Body)
 
 	requestContext := RequestContext{
 		ResponseWriter: writer,
@@ -138,13 +138,16 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	var args []reflect.Value
 	if procedure.InputType != nil { // 2 input args (context, request) scenario
 		requestInput := reflect.New(procedure.InputType)
-		err := json.Unmarshal(data, requestInput.Interface())
-		if err != nil {
-			RJson(writer, 400, Problem{
-				ErrorID: ERROR_JSON_UNMARSHAL,
-				Message: err.Error(),
-			})
-			return
+		
+		if len(data) > 0 { // we don't want to fail on zero length body
+			err := json.Unmarshal(data, requestInput.Interface())
+			if err != nil {
+				RJson(writer, 400, Problem{
+					ErrorID: ERROR_JSON_UNMARSHAL,
+					Message: err.Error(),
+				})
+				return
+			}
 		}
 
 		args = []reflect.Value{

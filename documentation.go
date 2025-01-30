@@ -149,6 +149,12 @@ func ParseFieldDescription(field reflect.StructField) string {
 func GetDocumentation(context *Context, filter string) string {
 	proceduresByCategory := make(map[string]*[]string, 0)
 	for procedureName, procedure := range context.Procedures {
+		if filter != "" {
+			if !strings.Contains(strings.ToLower(procedure.Identifier), strings.ToLower(filter)) {
+				continue
+			}
+		}
+
 		proceduresInThisCategory, ok := proceduresByCategory[procedure.Category]
 		if !ok {
 			_proceduresInThisCategory := make([]string, 0)
@@ -183,6 +189,7 @@ func GetDocumentation(context *Context, filter string) string {
 
 	var sb strings.Builder
 	for _, categoryProcedures := range proceduresByCategoryOrdered {
+
 		sb.WriteString("<details>\n")
 		categoryName := categoryProcedures.Category
 		if categoryName == "" {

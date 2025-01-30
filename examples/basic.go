@@ -86,8 +86,12 @@ func ListAllBuckets(ctx *ef.RequestContext) (result []interface{}, problem ef.Pr
 
 var efContext *ef.Context
 
-func RPC_GetDocumentation(context *ef.RequestContext) (problem ef.Problem) {
-	ef.String200(context.ResponseWriter, ef.GetDocumentation(efContext, ""))
+type GetDocumentationRequest struct {
+	Filter string
+}
+
+func RPC_GetDocumentation(context *ef.RequestContext, request GetDocumentationRequest) (problem ef.Problem) {
+	ef.String200(context.ResponseWriter, ef.GetDocumentation(efContext, request.Filter))
 	return
 }
 
@@ -172,17 +176,17 @@ func main() {
 	}
 
 	ef.NewRPC(efContext, ef.NewRPCParams{
-		Name:    "login",
+		Name:    "Login",
 		Handler: Login,
 	})
 
 	ef.NewRPC(efContext, ef.NewRPCParams{
-		Name:    "logout",
+		Name:    "Logout",
 		Handler: Logout,
 	})
 
 	ef.NewRPC(efContext, ef.NewRPCParams{
-		Name:    "listBuckets",
+		Name:    "ListBuckets",
 		Handler: ListAllBuckets,
 	})
 
