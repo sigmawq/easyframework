@@ -137,6 +137,23 @@ func RJson[T any](w http.ResponseWriter, status int, value T) {
 	fmt.Fprintf(w, string(data))
 }
 
+func String200(w http.ResponseWriter, str string) {
+	w.WriteHeader(200)
+	fmt.Fprint(w, str)
+}
+
+func Search[T any](array []T, eq func(v T) bool) (T, bool) {
+	for _, v := range array {
+		if eq(v) {
+			return v, true
+		}
+	}
+
+	// NOTE: you can't to T{} for retarded reason
+	var v T
+	return v, false
+}
+
 func SearchI[T any](array []T, eq func(v T) bool) (int, bool) {
 	for i, v := range array {
 		if eq(v) {

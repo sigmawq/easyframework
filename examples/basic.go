@@ -86,6 +86,11 @@ func ListAllBuckets(ctx *ef.RequestContext) (result []interface{}, problem ef.Pr
 
 var efContext *ef.Context
 
+func RPC_GetDocumentation(context *ef.RequestContext) (problem ef.Problem) {
+	ef.String200(context.ResponseWriter, ef.GetDocumentation(efContext, ""))
+	return
+}
+
 func main() {
 	efContext = new(ef.Context)
 	params := ef.InitializeParams{
@@ -99,6 +104,15 @@ func main() {
 	if err != nil {
 		log.Println("Error while initializing EF:", err)
 		return
+	}
+
+	{
+		first := ef.NewID128()
+		second := first.String()
+
+		var third ef.ID128
+		third.FromString(second)
+		log.Println(first, second, third)
 	}
 
 	if true {
@@ -170,6 +184,13 @@ func main() {
 	ef.NewRPC(efContext, ef.NewRPCParams{
 		Name:    "listBuckets",
 		Handler: ListAllBuckets,
+	})
+
+	ef.NewRPC(efContext, ef.NewRPCParams{
+		Name:                         "docs.md",
+		Handler:                      RPC_GetDocumentation,
+		AuthorizationRequired:        true,
+		NoAutomaticResponseOnSuccess: true,
 	})
 
 	ef.StartServer(efContext)

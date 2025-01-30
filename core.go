@@ -14,6 +14,7 @@ import (
 	"reflect"
 	"strings"
 	"time"
+	"unicode"
 )
 
 type Context struct {
@@ -39,21 +40,26 @@ func (ctx Context) Write(bytes []byte) (int, error) {
 }
 
 type Procedure struct {
-	Identifier            string
-	Procedure             reflect.Value
-	InputType             reflect.Type
-	OutputType            reflect.Type
-	ErrorType             reflect.Type
-	Calls                 uint64
-	AuthorizationRequired bool
+	Identifier                   string
+	Procedure                    reflect.Value
+	InputType                    reflect.Type
+	OutputType                   reflect.Type
+	ErrorType                    reflect.Type
+	Calls                        uint64
+	AuthorizationRequired        bool
+	Description                  string
+	Category                     string
+	Documentation                string
+	NoAutomaticResponseOnSuccess bool // @TODO: better system for static content
 }
 
 type InitializeParams struct {
-	Port          int
-	StdoutLogging bool
-	FileLogging   bool
-	DatabasePath  string
-	Authorization func(*RequestContext, http.ResponseWriter, *http.Request) bool
+	Port                          int
+	StdoutLogging                 bool
+	FileLogging                   bool
+	DatabasePath                  string
+	Authorization                 func(*RequestContext, http.ResponseWriter, *http.Request) bool
+	DontInitializeBuiltinDatabase bool
 }
 
 func Initialize(ctx *Context, params InitializeParams) error {
@@ -64,7 +70,7 @@ func Initialize(ctx *Context, params InitializeParams) error {
 	ctx.Authorization = params.Authorization
 	ctx.Port = params.Port
 
-	{ // Setup database
+	if !params.DontInitializeBuiltinDatabase { // Setup database
 		database, err := bolt.Open(params.DatabasePath, 0777, nil)
 		if err != nil {
 			return err
@@ -112,7 +118,9 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	data, _ := io.ReadAll(request.Body)
 
 	requestContext := RequestContext{
-		RequestID: requestID,
+		ResponseWriter: writer,
+		Request:        request,
+		RequestID:      requestID,
 	}
 	if procedure.AuthorizationRequired {
 		if ef.Authorization != nil {
@@ -186,8 +194,10 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	LookupErrorCode(problem)
 
 	if errorCode == ERROR_NONE || errorCode == "" {
-		if procedure.OutputType != nil {
-			RJson(writer, 200, response.Interface())
+		if !procedure.NoAutomaticResponseOnSuccess {
+			if procedure.OutputType != nil {
+				RJson(writer, 200, response.Interface())
+			}
 		}
 	} else {
 		RJson(writer, 400, problem.Interface())
@@ -199,32 +209,37 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 }
 
 type RequestContext struct {
-	RequestID    string
-	SessionToken string
+	ResponseWriter http.ResponseWriter
+	Request        *http.Request
+	RequestID      string
+	SessionToken   string
 }
 
 type NewRPCParams struct {
-	Name                  string
-	Handler               interface{}
-	AuthorizationRequired bool
+	Name                         string
+	Handler                      interface{}
+	AuthorizationRequired        bool
+	Description                  string
+	Category                     string
+	NoAutomaticResponseOnSuccess bool
 }
 
 func NewRPC(efContext *Context, params NewRPCParams) {
 	_, identifierIsInUse := efContext.Procedures[params.Name]
 	if identifierIsInUse {
 		log.Printf("NewRPC(): procedure identifier already in use: %v", params.Name)
-		panic("Cannot continue further!")
+		panic("Cannot continue!")
 	}
 
 	handlerTypeof := reflect.TypeOf(params.Handler)
 	if handlerTypeof.Kind() != reflect.Func {
 		log.Printf("NewRPC(): non-procedure passed as handler to %v", params.Name)
-		panic("Cannot continue further!")
+		panic("Cannot continue!")
 	}
 
 	if handlerTypeof.NumIn() > 2 {
 		log.Println("NewRPC(): input signature is not correct, expected (*RequestContext, (any type) <- optional) as input signature", params.Name)
-		panic("Cannot continue further!")
+		panic("Cannot continue!")
 	}
 
 	contextTypeof := handlerTypeof.In(0)
@@ -237,7 +252,7 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 
 	if !contextTypeofValidated {
 		log.Println("NewRPC(): handler has an invalid signature, the first argument should be *RequestContext")
-		panic("Cannot continue further!")
+		panic("Cannot continue!")
 	}
 
 	var inputTypeOf reflect.Type
@@ -254,7 +269,7 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 		errorTypeof = handlerTypeof.Out(0)
 	} else {
 		log.Println("NewRPC(): handler has an invalid signature, 1 or 2 output arguments are allowed.")
-		panic("Cannot continue further!")
+		panic("Cannot continue!")
 	}
 
 	if errorTypeof.Kind() != reflect.Struct {
@@ -269,7 +284,7 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 			for fieldI := 0; fieldI < errorTypeof.NumField(); fieldI += 1 {
 				field := errorTypeof.Field(fieldI)
 				if field.Anonymous {
-					if field.Type.Name() == "EF_Problem" {
+					if field.Type.Name() == "Problem" {
 						hasEfError = true
 						break
 					}
@@ -279,17 +294,60 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 
 		if !hasEfError {
 			log.Println("NewRPC(): Problem should be embedded in output error struct (or be the error struct that handler returns)")
-			panic("Cannot continue further!")
+			panic("Cannot continue!")
 		}
 	}
 
+	category := params.Category
+	if category == "" {
+		category = "Unknown category"
+	}
 	procedure := Procedure{
-		Identifier:            params.Name,
-		Procedure:             reflect.ValueOf(params.Handler),
-		InputType:             inputTypeOf,
-		OutputType:            outputTypeof,
-		ErrorType:             errorTypeof,
-		AuthorizationRequired: params.AuthorizationRequired,
+		Identifier:                   params.Name,
+		Procedure:                    reflect.ValueOf(params.Handler),
+		InputType:                    inputTypeOf,
+		OutputType:                   outputTypeof,
+		ErrorType:                    errorTypeof,
+		AuthorizationRequired:        params.AuthorizationRequired,
+		Description:                  params.Description,
+		Category:                     params.Category,
+		NoAutomaticResponseOnSuccess: params.NoAutomaticResponseOnSuccess,
+	}
+	{ // Generate procedure documentation
+		var sb strings.Builder
+
+		sb.WriteString(fmt.Sprintf("### **Name: /%v** ###\n", procedure.Identifier))
+
+		if procedure.Description != "" {
+			sb.WriteString(fmt.Sprintf("**Description**: %v\\\n", procedure.Description))
+		}
+
+		sb.WriteString("**Request**:\n")
+		sb.WriteString("```js\n")
+
+		if procedure.InputType != nil {
+			TypeToMarkdown(&sb, reflect.New(procedure.InputType).Interface())
+		} else {
+			sb.WriteString("empty\n")
+		}
+		sb.WriteString(fmt.Sprintf("```\n"))
+
+		sb.WriteString("**Response**:\n")
+		sb.WriteString("```js\n")
+
+		if params.NoAutomaticResponseOnSuccess {
+			sb.WriteString("Custom response\n")
+		} else if procedure.OutputType != nil {
+			TypeToMarkdown(&sb, reflect.New(procedure.OutputType).Interface())
+		} else {
+			sb.WriteString("empty\n")
+		}
+		sb.WriteString(fmt.Sprintf("```\n"))
+
+		sb.WriteString("---\n")
+		sb.WriteString("\n")
+
+		procedure.Documentation = sb.String()
 	}
 
 	efContext.Procedures[params.Name] = procedure
@@ -319,29 +377,29 @@ func StartServer(efContext *Context) {
 type ID128 [16]byte
 
 func (id ID128) String() string {
-	table := [32]byte { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6' }
-	var str [len(id) * 2]byte 
+	table := [32]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6'}
+	var str [len(id) * 2]byte
 	k := 0
 	for i := 0; i < len(id); i++ {
 		low4bits := id[i] & 0b00001111
-		lowChar := table[low4bits]
+		lowChar := byte(unicode.ToUpper(rune(table[low4bits])))
 
 		high4bits := (id[i] & 0b11110000) >> 4
 		highChar := table[high4bits]
-		
+
 		str[k] = highChar
-		str[k + 1] = lowChar
+		str[k+1] = lowChar
 		k += 2
 	}
-	
+
 	return string(str[:])
 }
 
 func (id *ID128) FromString(str string) error {
-	table := [255]byte { // Sub 1 when using it to get the value, zero value is used to indicate an absent characher
-		97: 1,
-		98: 2,
-		99: 3,
+	table := [255]byte{ // Sub 1 when using it to get the value, zero value is used to indicate an absent characher
+		97:  1,
+		98:  2,
+		99:  3,
 		100: 4,
 		101: 5,
 		102: 6,
@@ -365,23 +423,23 @@ func (id *ID128) FromString(str string) error {
 		120: 24,
 		121: 25,
 		122: 26,
-		49: 27,
-		50: 28,
-		51: 29,
-		52: 30,
-		53: 31,
-		54: 32,
+		49:  27,
+		50:  28,
+		51:  29,
+		52:  30,
+		53:  31,
+		54:  32,
 	}
 	if len(str) != (len(*id) * 2) {
 		return errors.New("ID128: Wrong size")
 	}
-	
+
 	data := ([]byte)(str)
 	k := 0
-	for i := 0; i <= len(data) - 1; i += 2 {
+	for i := 0; i <= len(data)-1; i += 2 {
 		highChar := data[i]
-		lowChar := data[i+1]
-		
+		lowChar := byte(unicode.ToLower(rune(data[i+1])))
+
 		highValue := table[highChar]
 		lowValue := table[lowChar]
 		if highValue == 0 || lowValue == 0 {
@@ -391,7 +449,7 @@ func (id *ID128) FromString(str string) error {
 		id[k] = ((highValue - 1) << 4) | (lowValue - 1)
 		k += 1
 	}
-	
+
 	return nil
 }
 

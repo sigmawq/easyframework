@@ -1,12 +1,15 @@
-normie routing:
+normie routing: - not really needed, just use a separate gorilla mux router with correspoding handlers or whatever
     routing itself
     query args
     path args
-id128/256:
-    json marshal/unmarshal
+id128:
+    json marshal/unmarshal - DONE
 validator: 
     validate request structs
 documentation generator:
     some basic docgen for types that are mentioned in newrpc
-    
-    
+database:
+	iterate, collect
+	iterate, collect by condition
+	iterate, remove by condition
+	
