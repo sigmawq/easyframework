@@ -16,6 +16,7 @@ const (
 	FORMAT_TOKEN_FIELD_ID    TokenType = 1
 	FORMAT_TOKEN_END         TokenType = 2
 	FORMAT_TOKEN_ARRAY_INDEX TokenType = 3
+	FORMAT_TOKEN_ARRAY_SIZE  TokenType = 4
 )
 
 type FieldID int16
@@ -40,7 +41,7 @@ func PreprocessStruct(theStruct reflect.Type) {
 	if preprocessedStructs == nil {
 		preprocessedStructs = make(map[reflect.Type]map[int]StructFieldData, 0)
 	}
-	
+
 	_, alreadyDone := preprocessedStructs[theStruct]
 	if alreadyDone {
 		return
@@ -67,7 +68,6 @@ func PreprocessStruct(theStruct reflect.Type) {
 
 		isTypeValid := false
 		switch field.Type.Kind() {
-
 		case reflect.Int:
 			panic("Raw integer type is not supported, we need to know the exact size of your variable")
 		case reflect.Uint:
@@ -207,7 +207,29 @@ func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, f
 			CopyToBuffer(buffer, FORMAT_TOKEN_END)
 		}
 	case reflect.Slice:
-		panic("unimplemented")
+		CopyToBuffer(buffer, FORMAT_TOKEN_ARRAY_SIZE)
+		CopyToBuffer(buffer, ArrayIndex(targetValue.Len()))
+
+		if IsSimpleType(targetType.Elem()) {
+			pointer := unsafe.Pointer(targetValue.Addr().Pointer())
+			elementSize := targetType.Elem().Size()
+			CopyToBufferRaw(buffer, pointer, int(elementSize)*targetValue.Len())
+		} else {
+			for i := 0; i < targetValue.Len(); i++ {
+				if targetValue.Index(i).IsZero() {
+					continue
+				}
+
+				CopyToBuffer(buffer, FORMAT_TOKEN_ARRAY_INDEX)
+				CopyToBuffer(buffer, ArrayIndex(i))
+				err := _Pack(buffer, targetType.Elem(), targetValue.Index(i), -1)
+				if err != nil {
+					return err
+				}
+			}
+
+			CopyToBuffer(buffer, FORMAT_TOKEN_END)
+		}
 	case reflect.String:
 		str := ([]byte)(targetValue.String())
 		if uint64(len(str)) > 0xffffffff {
@@ -420,7 +442,52 @@ func _Unpack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value)
 			}
 		}
 	case reflect.Slice:
-		panic("not yet implemented")
+		var token TokenType
+		CopyFromBuffer(buffer, &token)
+		if token != FORMAT_TOKEN_ARRAY_SIZE {
+			return &UnpackError{
+				Position: uint64(buffer.Index),
+				Message:  fmt.Sprintf("Expected FORMAT_TOKEN_ARRAY_SIZE got %v", token),
+			}
+		}
+		var sliceSize ArrayIndex
+		CopyFromBuffer(buffer, &sliceSize)
+		newSlice := reflect.MakeSlice(targetType, int(sliceSize), int(sliceSize))
+		targetValue.Set(newSlice)
+
+		if IsSimpleType(targetType.Elem()) {
+			pointer := unsafe.Pointer(targetValue.Addr().Pointer())
+			elementSize := targetType.Elem().Size()
+			CopyFromBufferRaw(buffer, pointer, int(elementSize)*targetValue.Len())
+		} else {
+			for {
+				var token TokenType
+				CopyFromBuffer(buffer, &token)
+				if token == FORMAT_TOKEN_END {
+					break
+				} else if token != FORMAT_TOKEN_ARRAY_INDEX {
+					return &UnpackError{
+						Position: uint64(buffer.Index),
+						Message:  fmt.Sprintf("Expected FORMAT_TOKEN_ARRAY_INDEX got %v", token),
+					}
+				}
+
+				var arrayIndex ArrayIndex
+				CopyFromBuffer(buffer, &arrayIndex)
+
+				if arrayIndex < 0 || int(arrayIndex) >= int(sliceSize) {
+					return &UnpackError{
+						Position: uint64(buffer.Index),
+						Message:  fmt.Sprintf("Array length %v is outside of slice bounds (%v)", arrayIndex, sliceSize),
+					}
+				}
+
+				err := _Unpack(buffer, targetType.Elem(), targetValue.Index(int(arrayIndex)))
+				if err != nil {
+					return err
+				}
+			}
+		}
 	case reflect.String:
 		var stringLength uint32
 		if !CopyFromBuffer(buffer, &stringLength) {

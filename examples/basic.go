@@ -4,6 +4,7 @@ import (
 	"fmt"
 	ef "github.com/sigmawq/easyframework"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -25,6 +26,7 @@ type User struct {
 	ID       ef.ID128 `id:"1"`
 	Name     string   `id:"2"`
 	Password string   `id:"3"`
+	PreviousNames []string `id:"4"`
 }
 
 type LoginRequest struct {
@@ -61,11 +63,14 @@ func Login(ctx *ef.RequestContext, request LoginRequest) (response Session, prob
 		return
 	}
 
+	ip, _, _ := net.SplitHostPort(ctx.Request.RemoteAddr)
+
 	sessionID := ef.NewID128()
 	response = Session{
 		ID:        sessionID,
 		UserID:    user.ID,
 		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+		IP:        ip,
 	}
 
 	sessions, _ := ef.GetBucket(tx, BUCKET_SESSIONS)
@@ -166,10 +171,11 @@ func RPC_GetLog(context *ef.RequestContext, request GetLogRequest) (logtext stri
 }
 
 type Session struct {
-	ID          ef.ID128 `id:"1"`
-	UserID      ef.ID128 `id:"2"`
-	ExpiresAt   int64    `id:"3"`
-	AccessCount int64    `id:"4"`
+	ID            ef.ID128 `id:"1"`
+	UserID        ef.ID128 `id:"2"`
+	ExpiresAt     int64    `id:"3"`
+	AccessCount   int64    `id:"4"`
+	IP            string   `id:"5"`
 }
 
 func Authorization(ctx *ef.RequestContext, w http.ResponseWriter, r *http.Request) bool {
@@ -186,6 +192,11 @@ func Authorization(ctx *ef.RequestContext, w http.ResponseWriter, r *http.Reques
 
 	var session Session
 	if !ef.GetByID(efContext, BUCKET_SESSIONS, sessionID, &session) {
+		return false
+	}
+
+	ip, _, _ := net.SplitHostPort(ctx.Request.RemoteAddr)
+	if ip != session.IP {
 		return false
 	}
 
@@ -260,6 +271,11 @@ func main() {
 				ID:       ef.NewID128(),
 				Name:     fmt.Sprintf("User-%v", ef.GenerateSixteenDigitCode()),
 				Password: ef.GenerateSixteenDigitCode(),
+				PreviousNames: []string{
+					"Previousname1",
+					"Previousname2",
+					"Previousname3",
+				},
 			}
 
 			err := ef.Insert(bucket, user1.ID, &user1)
