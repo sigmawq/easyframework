@@ -4,6 +4,8 @@ import (
 	"fmt"
 	ef "github.com/sigmawq/easyframework"
 	"log"
+	"net/http"
+	"strings"
 	"time"
 )
 
@@ -32,8 +34,8 @@ type User struct {
 }
 
 type LoginRequest struct {
-	Username string
-	Password string
+	Username string `description:"login or email" tag:"required"`
+	Password string `description:"at most several attempts per minute!" tag:"required"`
 }
 
 type LoginResponse struct {
@@ -42,7 +44,9 @@ type LoginResponse struct {
 }
 
 const (
+	ERROR_BAD_URL_FORMAT      = "bad_url_format"
 	ERROR_INVALID_CREDENTIALS = "invalid_credentials"
+	ERROR_CONTENT_NOT_FOUND   = "content_not_found"
 )
 
 func Login(ctx *ef.RequestContext, request LoginRequest) (response LoginResponse, problem ef.Problem) {
@@ -69,17 +73,8 @@ func ListAllBuckets(ctx *ef.RequestContext) (result []interface{}, problem ef.Pr
 	tx, _ := efContext.Database.Begin(false)
 	bucket, _ := ef.GetBucket(tx, BUCKET_USERS)
 
-	type Record[T any] struct {
-		ID     ef.ID128
-		Struct T
-	}
-
-	ef.Iterate(bucket, func(userID ef.ID128, user *User) bool {
-		result = append(result, Record[User]{
-			userID, *user,
-		})
-		return true
-	})
+	users := ef.IterateCollectAll[User](bucket)
+	result = append(result, users)
 
 	return
 }
@@ -95,12 +90,55 @@ func RPC_GetDocumentation(context *ef.RequestContext, request GetDocumentationRe
 	return
 }
 
+func RPC_GetStaticContent(context *ef.RequestContext) (problem ef.Problem) {
+	parts := strings.Split(context.Request.RequestURI, "static/")
+	if len(parts) != 2 {
+		problem.ErrorID = ERROR_BAD_URL_FORMAT
+		return
+	}
+
+	filename := parts[1]
+	filepath := ""
+	switch filename {
+	case "documentation_reader.wasm":
+		filepath = "documentation_reader/documentation_reader.wasm"
+	case "index.html":
+		filepath = "documentation_reader/index.html"
+	case "wasm_exec.js":
+		filepath = "documentation_reader/wasm_exec.js"
+	}
+
+	if filepath == "" {
+		problem.ErrorID = ERROR_CONTENT_NOT_FOUND
+		return
+	}
+
+	http.ServeFile(context.ResponseWriter, context.Request, filepath)
+	return
+}
+
+func RPC_GetLogList(context *ef.RequestContext) (logList []string, problem ef.Problem) {
+	logList = ef.GetLogList()
+	return
+}
+
+type GetLogRequest struct {
+	LogName       string `tag:"required"`
+	Filter        string
+	FilterBreadth int
+}
+
+func RPC_GetLog(context *ef.RequestContext, request GetLogRequest) (logtext string, problem ef.Problem) {
+	logtext = ef.GetLog(request.LogName, request.Filter, request.FilterBreadth)
+	return
+}
+
 func main() {
 	efContext = new(ef.Context)
 	params := ef.InitializeParams{
 		Port:          6600,
 		StdoutLogging: true,
-		FileLogging:   false,
+		FileLogging:   true,
 		DatabasePath:  "db",
 		Authorization: nil,
 	}
@@ -186,8 +224,16 @@ func main() {
 	})
 
 	ef.NewRPC(efContext, ef.NewRPCParams{
-		Name:    "ListBuckets",
-		Handler: ListAllBuckets,
+		Name:        "ListBuckets",
+		Description: "Bla bla bla",
+		Handler:     ListAllBuckets,
+	})
+
+	ef.NewRPC(efContext, ef.NewRPCParams{
+		Category:    "Logs",
+		Name:        "LogList",
+		Description: "Get list of all logs",
+		Handler:     RPC_GetLogList,
 	})
 
 	ef.NewRPC(efContext, ef.NewRPCParams{
@@ -196,6 +242,10 @@ func main() {
 		AuthorizationRequired:        true,
 		NoAutomaticResponseOnSuccess: true,
 	})
+
+	ef.StaticContent(efContext, "documentation_reader.html", "documentation_reader/documentation_reader.html")
+	ef.StaticContent(efContext, "wasm_exec.js", "documentation_reader/wasm_exec.js")
+	ef.StaticContent(efContext, "documentation_reader.wasm", "documentation_reader/documentation_reader.wasm")
 
 	ef.StartServer(efContext)
 }

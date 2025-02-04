@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -19,6 +20,7 @@ import (
 
 type Context struct {
 	Procedures    map[string]Procedure
+	StaticData    map[string]string
 	Port          int
 	DatabasePath  string
 	Database      *bolt.DB
@@ -64,11 +66,13 @@ type InitializeParams struct {
 
 func Initialize(ctx *Context, params InitializeParams) error {
 	ctx.Procedures = make(map[string]Procedure)
-
 	ctx.FileLogging = params.FileLogging
 	ctx.StdoutLogging = params.StdoutLogging
 	ctx.Authorization = params.Authorization
 	ctx.Port = params.Port
+	ctx.StaticData = make(map[string]string)
+
+	CreateDirectoryIfDoesntExist("logs")
 
 	if !params.DontInitializeBuiltinDatabase { // Setup database
 		database, err := bolt.Open(params.DatabasePath, 0777, nil)
@@ -101,13 +105,75 @@ func Initialize(ctx *Context, params InitializeParams) error {
 	return nil
 }
 
+type ValidateDataError struct {
+	Field  string
+	Reason string
+}
+
+func ValidateRequestStruct(errorList *[]ValidateDataError, typeof reflect.Type, valueof reflect.Value, fieldPrefix string) {
+	switch typeof.Kind() {
+	case reflect.Pointer:
+		ValidateRequestStruct(errorList, typeof.Elem(), valueof.Elem(), fieldPrefix)
+	case reflect.Struct: // TODO: Use preprocessed struct
+		for i := 0; i < typeof.NumField(); i += 1 {
+			fieldType := typeof.Field(i)
+			fieldValue := valueof.Field(i)
+
+			ourTags := ParseOurTags(fieldType)
+
+			_jsonTags := fieldType.Tag.Get("json")
+			jsonTags := strings.Split(_jsonTags, ",")
+			name := ""
+			if len(jsonTags) > 0 {
+				name = jsonTags[0]
+			}
+			if name == "" {
+				name = fieldValue.Type().Name()
+			}
+
+			if ourTags.IsARequiredField {
+				if fieldValue.IsZero() {
+					*errorList = append(*errorList, ValidateDataError{
+						Field:  fieldPrefix + name,
+						Reason: "field is missing",
+					})
+				}
+			}
+
+			ValidateRequestStruct(errorList, fieldType.Type, fieldValue, fieldType.Name+"/")
+		}
+	case reflect.Slice:
+		for i := 0; i < valueof.Len(); i += 1 {
+			elemTypeof := typeof.Elem()
+			elemValueof := valueof.Index(i)
+
+			ValidateRequestStruct(errorList, elemTypeof, elemValueof, typeof.Name()+"["+strconv.Itoa(i)+"]"+"/")
+		}
+	}
+}
+
 func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	now := time.Now()
 
-	procedureName := strings.TrimLeft(request.RequestURI, "/")
 	requestID := NewID128().String()
 	data, _ := io.ReadAll(request.Body)
-	log.Printf("Incoming request: %v (%v): %v", procedureName, requestID, data)
+	log.Printf("[In] %v (%v): %v", request.RequestURI, requestID, string(data))
+
+	rpcIndex := strings.Index(request.RequestURI, "/rpc/")
+	if rpcIndex == -1 { // Serve static content
+		staticName := strings.TrimLeft(request.RequestURI, "/")
+		filepath, ok := ef.StaticData[staticName]
+		if !ok {
+			RJson(writer, 400, Problem{
+				ErrorID: ERROR_STATIC_CONTENT_NOT_FOUND,
+			})
+			return
+		}
+		http.ServeFile(writer, request, filepath)
+		return
+	}
+	procedureName := request.RequestURI[rpcIndex+len("/rpc/"):]
+
 	procedure, procedureFound := ef.Procedures[procedureName]
 	if !procedureFound {
 		RJson(writer, 400, Problem{
@@ -127,7 +193,7 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 			if !ef.Authorization(&requestContext, writer, request) {
 				RJson(writer, 400, Problem{
 					ErrorID: ERROR_AUTHENTICATION_FAILED,
-					Message: "Bad session token",
+					Message: "Unauthorized",
 				})
 				return
 			}
@@ -138,7 +204,7 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	var args []reflect.Value
 	if procedure.InputType != nil { // 2 input args (context, request) scenario
 		requestInput := reflect.New(procedure.InputType)
-		
+
 		if len(data) > 0 { // we don't want to fail on zero length body
 			err := json.Unmarshal(data, requestInput.Interface())
 			if err != nil {
@@ -148,6 +214,17 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 				})
 				return
 			}
+		}
+
+		// validate input
+		var errorList []ValidateDataError
+		ValidateRequestStruct(&errorList, requestInput.Type(), requestInput, "")
+		if len(errorList) > 0 {
+			validationProblem := ValidationErrorProblem{}
+			validationProblem.ErrorID = ERROR_VALIDATION_FAILED
+			validationProblem.ValidationProblem = errorList
+			RJson(writer, 400, validationProblem)
+			return
 		}
 
 		args = []reflect.Value{
@@ -208,7 +285,11 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 
 	then := time.Now()
 	diff := then.Sub(now)
-	log.Printf("(%v) %v (%v)", diff, procedureName, requestID)
+	log.Printf("[Out, %v] %v (%v)", diff, procedureName, requestID)
+}
+
+func NewREST(efContext *Context, path string, handler string) { // bruh..
+
 }
 
 type RequestContext struct {
@@ -230,7 +311,7 @@ type NewRPCParams struct {
 func NewRPC(efContext *Context, params NewRPCParams) {
 	_, identifierIsInUse := efContext.Procedures[params.Name]
 	if identifierIsInUse {
-		log.Printf("NewRPC(): procedure identifier already in use: %v", params.Name)
+		log.Printf("NewRPC(): procedure identifier already in use: %v", params.Name) // @TODO: Better error messages
 		panic("Cannot continue!")
 	}
 
@@ -296,8 +377,8 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 		}
 
 		if !hasEfError {
-			log.Println("NewRPC(): Problem should be embedded in output error struct (or be the error struct that handler returns)")
-			panic("Cannot continue!")
+			log.Printf("[%v] Problem should be embedded in output error struct (or be the error struct that handler returns)", params.Name)
+			panic("NewRPC() failed")
 		}
 	}
 
@@ -319,24 +400,26 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 	{ // Generate procedure documentation
 		var sb strings.Builder
 
-		sb.WriteString(fmt.Sprintf("### **Name: /%v** ###\n", procedure.Identifier))
+		sb.WriteString(fmt.Sprintf("<h3 class=\"leftpad_10\"> <b>URL: rpc/%v</b> </h3>\n", procedure.Identifier))
+
+		sb.WriteString("<div class=\"rpc_description\">\n")
 
 		if procedure.Description != "" {
-			sb.WriteString(fmt.Sprintf("**Description**: %v\\\n", procedure.Description))
+			sb.WriteString(fmt.Sprintf("<b>Description</b>: %v\n", procedure.Description))
 		}
 
-		sb.WriteString("**Request**:\n")
-		sb.WriteString("```js\n")
+		sb.WriteString("<h4>Request:</h2>\n")
+		sb.WriteString("<code>")
 
 		if procedure.InputType != nil {
 			TypeToMarkdown(&sb, reflect.New(procedure.InputType).Interface())
 		} else {
-			sb.WriteString("empty\n")
+			sb.WriteString("empty")
 		}
-		sb.WriteString(fmt.Sprintf("```\n"))
+		sb.WriteString(fmt.Sprintf("</code>"))
 
-		sb.WriteString("**Response**:\n")
-		sb.WriteString("```js\n")
+		sb.WriteString("<h4>Response:</h2>\n")
+		sb.WriteString("<code>")
 
 		if params.NoAutomaticResponseOnSuccess {
 			sb.WriteString("Custom response\n")
@@ -345,9 +428,11 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 		} else {
 			sb.WriteString("empty\n")
 		}
-		sb.WriteString(fmt.Sprintf("```\n"))
+		sb.WriteString(fmt.Sprintf("</code>"))
 
-		sb.WriteString("---\n")
+		sb.WriteString("</div>\n")
+
+		sb.WriteString("<hr class=\"solid\">")
 		sb.WriteString("\n")
 
 		procedure.Documentation = sb.String()
@@ -356,14 +441,22 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 	efContext.Procedures[params.Name] = procedure
 }
 
+func StaticContent(context *Context, name, filepath string) {
+	// @TODO: Validate that path exists
+	context.StaticData[name] = filepath
+}
+
 type ErrorID string
 
 const (
-	ERROR_NONE                  ErrorID = "none"
-	ERROR_PROCEDURE_NOT_FOUND           = "procedure_not_found"
-	ERROR_JSON_UNMARSHAL                = "json_unmarshal_failed"
-	ERROR_INTERNAL                      = "internal_error"
-	ERROR_AUTHENTICATION_FAILED         = "authentication_failed"
+	ERROR_NONE                     ErrorID = "none"
+	ERROR_PROCEDURE_NOT_FOUND              = "procedure_not_found"
+	ERROR_JSON_UNMARSHAL                   = "json_unmarshal_failed"
+	ERROR_VALIDATION_FAILED                = "request_validation_failed"
+	ERROR_INTERNAL                         = "internal_error"
+	ERROR_AUTHENTICATION_FAILED            = "authentication_failed"
+	ERROR_STATIC_CONTENT_NOT_FOUND         = "static_content_not_found"
+	ERROR_REST_PROCEDURE_NOT_FOUND         = "rest_procedure_not_found"
 )
 
 type Problem struct {
@@ -371,16 +464,22 @@ type Problem struct {
 	Message string
 }
 
+type ValidationErrorProblem struct {
+	Problem
+	ValidationProblem []ValidateDataError
+}
+
 func StartServer(efContext *Context) {
 	log.Printf("%v procedures registered", len(efContext.Procedures))
 	log.Printf("Listen of port %v", efContext.Port)
+
 	http.ListenAndServe(fmt.Sprintf(":%v", efContext.Port), efContext)
 }
 
 type ID128 [16]byte
 
 func (id ID128) String() string {
-	table := [32]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6'}
+	table := [32]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', '1', '2', '3', '4', '5', '6'}
 	var str [len(id) * 2]byte
 	k := 0
 	for i := 0; i < len(id); i++ {
@@ -410,22 +509,6 @@ func (id *ID128) FromString(str string) error {
 		104: 8,
 		105: 9,
 		106: 10,
-		107: 11,
-		108: 12,
-		109: 13,
-		110: 14,
-		111: 15,
-		112: 16,
-		113: 17,
-		114: 18,
-		115: 19,
-		116: 20,
-		117: 21,
-		118: 22,
-		119: 23,
-		120: 24,
-		121: 25,
-		122: 26,
 		49:  27,
 		50:  28,
 		51:  29,

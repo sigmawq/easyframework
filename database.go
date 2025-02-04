@@ -111,6 +111,57 @@ func Iterate[V any](bucket *bolt.Bucket, iteratorProcedure func(key ID128, value
 	}
 }
 
+func IterateCollect[V any](bucket *bolt.Bucket, iteratorProcedure func(key ID128, value *V) bool) []V {
+	cursor := bucket.Cursor()
+	var result []V
+	for key, value := cursor.First(); key != nil; key, value = cursor.Next() {
+		var theStruct V
+		err := Unpack(value, &theStruct)
+		if err != nil {
+			log.Printf("Unpack FAILED for ID %v, reason: %v", key, err)
+		}
+
+		if !iteratorProcedure(ID128(key), &theStruct) {
+			break
+		}
+
+		result = append(result, theStruct)
+	}
+
+	return result
+}
+
+func IterateCollectAll[V any](bucket *bolt.Bucket) []V {
+	cursor := bucket.Cursor()
+	var result []V
+	for key, value := cursor.First(); key != nil; key, value = cursor.Next() {
+		var theStruct V
+		err := Unpack(value, &theStruct)
+		if err != nil {
+			log.Printf("Unpack FAILED for ID %v, reason: %v", key, err)
+		}
+
+		result = append(result, theStruct)
+	}
+
+	return result
+}
+
+func IterateRemove[V any](bucket *bolt.Bucket, iteratorProcedure func(key ID128, value *V) bool) {
+	cursor := bucket.Cursor()
+	for key, value := cursor.First(); key != nil; key, value = cursor.Next() {
+		var theStruct V
+		err := Unpack(value, &theStruct)
+		if err != nil {
+			log.Printf("Unpack FAILED for ID %v, reason: %v", key, err)
+		}
+
+		if iteratorProcedure(ID128(key), &theStruct) {
+			bucket.Delete(key)
+		}
+	}
+}
+
 func WriteTx(ctx *Context) (*bolt.Tx, error) {
 	return ctx.Database.Begin(true)
 }

@@ -1,0 +1,22 @@
+[2025-02-02T13:27:45.514Z, basic.go:155, g1] dG51iDf55411b65I1B3E15b5hIc415e6 dG51iDf55411b65I1B3E15b5hIc415e6 dG61iDf56421b65I1B3E25b5hId425f6
+[2025-02-02T13:27:45.578Z, core.go:404, g1] 5 procedures registered
+[2025-02-02T13:27:45.579Z, core.go:405, g1] Listen of port 6600
+[2025-02-02T13:27:49.538Z, core.go:113, g18] Incoming request: //documentation_reader.html (g2gAaF5IhBgB51426DcF15fG24a3hFe4): 
+[2025-02-02T13:27:49.669Z, core.go:113, g18] Incoming request: //rpc/docs.md (c1c6a45FgFcCi34JaJ5Gg1jFhFjAbE6I): 
+[2025-02-02T13:27:49.669Z, core.go:230, g18] (0s) docs.md (c1c6a45FgFcCi34JaJ5Gg1jFhFjAbE6I)
+[2025-02-02T13:27:59.044Z, core.go:113, g18] Incoming request: //rpc/docs.md (4DhGeHfA35d6jGbG2H223A5Jc6g6cEaH): {"Filter":"l"}
+[2025-02-02T13:27:59.044Z, core.go:230, g18] (0s) docs.md (4DhGeHfA35d6jGbG2H223A5Jc6g6cEaH)
+[2025-02-02T13:27:59.174Z, core.go:113, g18] Incoming request: //rpc/docs.md (fD12iCdH2E2C3AjE6D1C5EeDjD14j6bG): {"Filter":"lo"}
+[2025-02-02T13:27:59.174Z, core.go:230, g18] (0s) docs.md (fD12iCdH2E2C3AjE6D1C5EeDjD14j6bG)
+[2025-02-02T13:27:59.227Z, core.go:113, g18] Incoming request: //rpc/docs.md (bBcF3CdFi141jIhI16a5h15FdBhH21d3): {"Filter":"log"}
+[2025-02-02T13:27:59.227Z, core.go:230, g18] (0s) docs.md (bBcF3CdFi141jIhI16a5h15FdBhH21d3)
+[2025-02-02T13:27:59.856Z, core.go:113, g18] Incoming request: //rpc/docs.md (5Hb3eDe1c6gJ64iEg324aG45i312gCaC): {"Filter":"logl"}
+[2025-02-02T13:27:59.856Z, core.go:230, g18] (0s) docs.md (5Hb3eDe1c6gJ64iEg324aG45i312gCaC)
+[2025-02-02T13:27:59.976Z, core.go:113, g18] Incoming request: //rpc/docs.md (j6h3c5dIc2fF6GbHfI2431f6bE342De5): {"Filter":"logli"}
+[2025-02-02T13:27:59.976Z, core.go:230, g18] (0s) docs.md (j6h3c5dIc2fF6GbHfI2431f6bE342De5)
+[2025-02-02T13:27:59.998Z, core.go:113, g18] Incoming request: //rpc/docs.md (6CaEe2j32Bb1eH255Bf2c66Fj532a252): {"Filter":"loglis"}
+[2025-02-02T13:27:59.998Z, core.go:230, g18] (0s) docs.md (6CaEe2j32Bb1eH255Bf2c66Fj532a252)
+[2025-02-02T13:28:00.069Z, core.go:113, g18] Incoming request: //rpc/docs.md (bAeE126C2B316C66jGaGjBjFi5hBeD14): {"Filter":"loglist"}
+[2025-02-02T13:28:00.069Z, core.go:230, g18] (0s) docs.md (bAeE126C2B316C66jGaGjBjFi5hBeD14)
+[2025-02-02T13:28:38.49Z, core.go:113, g18] Incoming request: /rpc/LogList (6EiGfB5B1FhI2Gb4a41DhAj4gEd4jDbB): 
+[2025-02-02T13:28:38.491Z, core.go:230, g18] (1.0022ms) LogList (6EiGfB5B1FhI2Gb4a41DhAj4gEd4jDbB)

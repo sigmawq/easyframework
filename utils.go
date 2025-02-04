@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"runtime"
 	"unsafe"
 )
@@ -177,4 +178,13 @@ func SearchPtr[T any](array []T, eq func(v *T) bool) (*T, bool) {
 func Remove[T any](array []T, i int) []T {
 	array[i] = array[len(array)-1]
 	return array[:len(array)-1]
+}
+
+func CreateDirectoryIfDoesntExist(path string) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err := os.Mkdir(path, 0777)
+		if err != nil {
+			panic(err)
+		}
+	}
 }

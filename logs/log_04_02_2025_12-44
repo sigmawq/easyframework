@@ -1,0 +1,40 @@
+[2025-02-04T12:44:49.582Z, basic.go:166, g1] a1a26D6E2A1E611B42gC2H4Ha1a4fAd3 a1a26D6E2A1E611B42gC2H4Ha1a4fAd3 b1b26D6E2A1E611B42gC2H4Hb1b4fAd3
+[2025-02-04T12:44:49.64Z, core.go:467, g1] 5 procedures registered
+[2025-02-04T12:44:49.641Z, core.go:468, g1] Listen of port 6600
+[2025-02-04T12:44:49.959Z, core.go:160, g18] [In] /documentation_reader.html (f1f62BbE5H5JcHf4fI5D352Hi2165H43): 
+[2025-02-04T12:44:50.054Z, core.go:160, g18] [In] /rpc/docs.md (fHcAa15C33jFdFd41D4F2BiI6A1A5F3I): 
+[2025-02-04T12:44:50.055Z, core.go:287, g18] [Out, 782.3µs] docs.md (fHcAa15C33jFdFd41D4F2BiI6A1A5F3I)
+[2025-02-04T12:44:53.671Z, core.go:160, g18] [In] /rpc/docs.md (hJ4JgC41dDf5iIfJj66Ab6dIaAb35Ee6): {"Filter":"a"}
+[2025-02-04T12:44:53.671Z, core.go:287, g18] [Out, 0s] docs.md (hJ4JgC41dDf5iIfJj66Ab6dIaAb35Ee6)
+[2025-02-04T12:44:53.69Z, core.go:160, g18] [In] /rpc/docs.md (aH632JeD2Ib41BhD2B4GcDiGfA6I1Ce4): {"Filter":"as"}
+[2025-02-04T12:44:53.69Z, core.go:287, g18] [Out, 0s] docs.md (aH632JeD2Ib41BhD2B4GcDiGfA6I1Ce4)
+[2025-02-04T12:44:53.766Z, core.go:160, g18] [In] /rpc/docs.md (2FbHhEf6hJcH336H6Bh64GfC2Id11F22): {"Filter":"asd"}
+[2025-02-04T12:44:53.766Z, core.go:287, g18] [Out, 0s] docs.md (2FbHhEf6hJcH336H6Bh64GfC2Id11F22)
+[2025-02-04T12:44:53.876Z, core.go:160, g18] [In] /rpc/docs.md (iE16cGg5dFaHjB32j4j3bC3EcDgA3B6C): {"Filter":"asda"}
+[2025-02-04T12:44:53.876Z, core.go:287, g18] [Out, 0s] docs.md (iE16cGg5dFaHjB32j4j3bC3EcDgA3B6C)
+[2025-02-04T12:44:53.888Z, core.go:160, g18] [In] /rpc/docs.md (fHi6gGbBdBhG1A255F6225jF1Gf3cB6I): {"Filter":"asdas"}
+[2025-02-04T12:44:53.888Z, core.go:287, g18] [Out, 0s] docs.md (fHi6gGbBdBhG1A255F6225jF1Gf3cB6I)
+[2025-02-04T12:44:53.948Z, core.go:160, g18] [In] /rpc/docs.md (jEbHfH63eBhD1E15eA4E54iJ32d4262E): {"Filter":"asdasd"}
+[2025-02-04T12:44:53.948Z, core.go:287, g18] [Out, 0s] docs.md (jEbHfH63eBhD1E15eA4E54iJ32d4262E)
+[2025-02-04T12:44:54.204Z, core.go:160, g18] [In] /rpc/docs.md (4G1Bb4jJaIi6fFj16JgGa33BjBcHhAbD): {"Filter":""}
+[2025-02-04T12:44:54.204Z, core.go:287, g18] [Out, 0s] docs.md (4G1Bb4jJaIi6fFj16JgGa33BjBcHhAbD)
+[2025-02-04T12:44:55.796Z, core.go:160, g18] [In] /rpc/docs.md (i263iHdJfGaH1I445DdIh1e15Fc2bEhJ): {"Filter":"s"}
+[2025-02-04T12:44:55.796Z, core.go:287, g18] [Out, 0s] docs.md (i263iHdJfGaH1I445DdIh1e15Fc2bEhJ)
+[2025-02-04T12:44:55.836Z, core.go:160, g18] [In] /rpc/docs.md (g2jJaHiGjC6Bj4b142fB5D2HbJg463dJ): {"Filter":"sd"}
+[2025-02-04T12:44:55.836Z, core.go:287, g18] [Out, 0s] docs.md (g2jJaHiGjC6Bj4b142fB5D2HbJg463dJ)
+[2025-02-04T12:44:56.1Z, core.go:160, g18] [In] /rpc/docs.md (26541JgEdH62cD1Ih6hG6I4JhDi1c3fI): {"Filter":"sdd"}
+[2025-02-04T12:44:56.1Z, core.go:287, g18] [Out, 0s] docs.md (26541JgEdH62cD1Ih6hG6I4JhDi1c3fI)
+[2025-02-04T12:44:56.194Z, core.go:160, g18] [In] /rpc/docs.md (55bIbCfJc4e1hG6IeJ3FjJeAdHj43DaA): {"Filter":"sd"}
+[2025-02-04T12:44:56.194Z, core.go:287, g18] [Out, 0s] docs.md (55bIbCfJc4e1hG6IeJ3FjJeAdHj43DaA)
+[2025-02-04T12:44:56.36Z, core.go:160, g18] [In] /rpc/docs.md (iEg31G2HaAc6j65EdHhG366Ch1hChEiG): {"Filter":"s"}
+[2025-02-04T12:44:56.36Z, core.go:287, g18] [Out, 0s] docs.md (iEg31G2HaAc6j65EdHhG366Ch1hChEiG)
+[2025-02-04T12:44:56.498Z, core.go:160, g18] [In] /rpc/docs.md (3BeG643GgFiC3AhBcI45dCiFgDcEjB26): {"Filter":""}
+[2025-02-04T12:44:56.498Z, core.go:287, g18] [Out, 0s] docs.md (3BeG643GgFiC3AhBcI45dCiFgDcEjB26)
+[2025-02-04T12:44:56.775Z, core.go:160, g18] [In] /rpc/docs.md (43fJf5hI6D2Ah4456G651Ij2d5dCb4fG): {"Filter":"d"}
+[2025-02-04T12:44:56.775Z, core.go:287, g18] [Out, 0s] docs.md (43fJf5hI6D2Ah4456G651Ij2d5dCb4fG)
+[2025-02-04T12:44:56.895Z, core.go:160, g18] [In] /rpc/docs.md (iC54g5iEgJf1b356dHj4g6b5bAeJj1e2): {"Filter":"dd"}
+[2025-02-04T12:44:56.895Z, core.go:287, g18] [Out, 0s] docs.md (iC54g5iEgJf1b356dHj4g6b5bAeJj1e2)
+[2025-02-04T12:44:57.044Z, core.go:160, g18] [In] /rpc/docs.md (aF46fBdDcB3Hd26135b12CeJaJ63jJgB): {"Filter":"d"}
+[2025-02-04T12:44:57.044Z, core.go:287, g18] [Out, 0s] docs.md (aF46fBdDcB3Hd26135b12CeJaJ63jJgB)
+[2025-02-04T12:44:57.395Z, core.go:160, g18] [In] /rpc/docs.md (gD15jC2BiCeH5BiId24Db5eCjBgBg3g1): {"Filter":""}
+[2025-02-04T12:44:57.395Z, core.go:287, g18] [Out, 0s] docs.md (gD15jC2BiCeH5BiId24Db5eCjBgBg3g1)

@@ -1,0 +1,57 @@
+[2025-02-02T14:06:01.292Z, basic.go:166, g1] 5Aa4dGh3b13D6DaEeFiBhDdFcF4F6Af1 5Aa4dGh3b13D6DaEeFiBhDdFcF4F6Af1 5Ab4dGh3b13D6DaEeFiBhDdFcF4F6Af1
+[2025-02-02T14:06:01.337Z, core.go:404, g1] 5 procedures registered
+[2025-02-02T14:06:01.337Z, core.go:405, g1] Listen of port 6600
+[2025-02-02T14:06:02.968Z, core.go:113, g7] Incoming request: /log_reader.html (aEc2jB1AfB12hHcEj5b13Cf5eG33i1bC): 
+[2025-02-02T14:06:03.01Z, core.go:113, g7] Incoming request: /log_reader.wasm (46gJf5iHiJ1JeCdIiIdJ5E65e21AeD5A): 
+[2025-02-02T14:06:03.05Z, core.go:113, g7] Incoming request: /favicon.ico (2H2Jg1c26FeIg545i66I654H33jIc5g3): 
+[2025-02-02T14:06:04.089Z, core.go:113, g9] Incoming request: /rpc/docs.md (jI35452JdDhB4A232EbC5IhA1Hc1gGa4): 
+[2025-02-02T14:06:04.089Z, core.go:230, g9] (0s) docs.md (jI35452JdDhB4A232EbC5IhA1Hc1gGa4)
+[2025-02-02T14:06:06.126Z, core.go:113, g9] Incoming request: /rpc/docs.md (fFc3bAdIeHe5f34IaGe3cFaCa5bJ6G2F): 
+[2025-02-02T14:06:06.126Z, core.go:230, g9] (0s) docs.md (fFc3bAdIeHe5f34IaGe3cFaCa5bJ6G2F)
+[2025-02-02T14:06:08.161Z, core.go:113, g9] Incoming request: /rpc/docs.md (fAd3hEf4i514eCe5j1d2aCf4hJaDeF4G): 
+[2025-02-02T14:06:08.161Z, core.go:230, g9] (0s) docs.md (fAd3hEf4i514eCe5j1d2aCf4hJaDeF4G)
+[2025-02-02T14:06:10.19Z, core.go:113, g9] Incoming request: /rpc/docs.md (i5h12J4Da2fHhH26gH42j2e6c6aF56hB): 
+[2025-02-02T14:06:10.19Z, core.go:230, g9] (0s) docs.md (i5h12J4Da2fHhH26gH42j2e6c6aF56hB)
+[2025-02-02T14:06:11.819Z, core.go:113, g38] Incoming request: /log_reader.html (6665b22Df3cJ5F3ChB5BbAi163gGe5cA): 
+[2025-02-02T14:06:12.228Z, core.go:113, g9] Incoming request: /rpc/docs.md (hB1A1562e65IbHc3fGbD25h44JaD45bJ): 
+[2025-02-02T14:06:12.228Z, core.go:230, g9] (0s) docs.md (hB1A1562e65IbHc3fGbD25h44JaD45bJ)
+[2025-02-02T14:06:14.378Z, core.go:113, g9] Incoming request: /rpc/docs.md (22aB3E516BfGeHc4f5bG45aC321Ci633): 
+[2025-02-02T14:06:14.378Z, core.go:230, g9] (0s) docs.md (22aB3E516BfGeHc4f5bG45aC321Ci633)
+[2025-02-02T14:06:17.174Z, core.go:113, g9] Incoming request: /rpc/docs.md (fG11a5eG42aFbG632EjHgI6E16aI55h1): 
+[2025-02-02T14:06:17.174Z, core.go:230, g9] (0s) docs.md (fG11a5eG42aFbG632EjHgI6E16aI55h1)
+[2025-02-02T14:06:19.216Z, core.go:113, g9] Incoming request: /rpc/docs.md (gJeD4Dc2dH6C3F631F2HdFc4eI4Ja5g1): 
+[2025-02-02T14:06:19.216Z, core.go:230, g9] (0s) docs.md (gJeD4Dc2dH6C3F631F2HdFc4eI4Ja5g1)
+[2025-02-02T14:06:21.245Z, core.go:113, g9] Incoming request: /rpc/docs.md (2Ib4aHi6fC6Ij561d353fGaG65f1hF6C): 
+[2025-02-02T14:06:21.245Z, core.go:230, g9] (0s) docs.md (2Ib4aHi6fC6Ij561d353fGaG65f1hF6C)
+[2025-02-02T14:06:23.282Z, core.go:113, g9] Incoming request: /rpc/docs.md (aB345DhBjH1FdHfAaBdHjE2HfFdEbGg6): 
+[2025-02-02T14:06:23.282Z, core.go:230, g9] (0s) docs.md (aB345DhBjH1FdHfAaBdHjE2HfFdEbGg6)
+[2025-02-02T14:06:25.317Z, core.go:113, g9] Incoming request: /rpc/docs.md (d342622A6HcCa3hIeGd3dAi1j5cA534D): 
+[2025-02-02T14:06:25.317Z, core.go:230, g9] (0s) docs.md (d342622A6HcCa3hIeGd3dAi1j5cA534D)
+[2025-02-02T14:06:27.349Z, core.go:113, g9] Incoming request: /rpc/docs.md (i63D33dAi42Ge24EjFgA14jGeAfBa1iG): 
+[2025-02-02T14:06:27.349Z, core.go:230, g9] (0s) docs.md (i63D33dAi42Ge24EjFgA14jGeAfBa1iG)
+[2025-02-02T14:06:29.387Z, core.go:113, g9] Incoming request: /rpc/docs.md (6IgE4Hh353c61Aa6b6eJaE1Gg36AbGgC): 
+[2025-02-02T14:06:29.387Z, core.go:230, g9] (0s) docs.md (6IgE4Hh353c61Aa6b6eJaE1Gg36AbGgC)
+[2025-02-02T14:06:31.423Z, core.go:113, g9] Incoming request: /rpc/docs.md (34jAc13I3EbGiDaIbD45dGe1bG26gEjJ): 
+[2025-02-02T14:06:31.423Z, core.go:230, g9] (0s) docs.md (34jAc13I3EbGiDaIbD45dGe1bG26gEjJ)
+[2025-02-02T14:06:33.461Z, core.go:113, g9] Incoming request: /rpc/docs.md (eH116E5Aj6a2654CaHcJhH4F2Hf5j2fI): 
+[2025-02-02T14:06:33.461Z, core.go:230, g9] (0s) docs.md (eH116E5Aj6a2654CaHcJhH4F2Hf5j2fI)
+[2025-02-02T14:06:35.006Z, core.go:113, g9] Incoming request: /log_reader.html (i6fI5Bb3h53GgC1CiD4BeC2EhH1DaBh2): 
+[2025-02-02T14:06:35.026Z, core.go:113, g9] Incoming request: /wasm_exec.js (iG5CgG615Ih4gAjBj3dA4Ei2hG321HgE): 
+[2025-02-02T14:06:35.03Z, core.go:113, g11] Incoming request: /log_reader.wasm (dHe6jG4D5B46bEaJ12f46D5D4J452DeE): 
+[2025-02-02T14:06:35.06Z, core.go:113, g11] Incoming request: /favicon.ico (cI4E5Jg6165Jc4gJg533gDeA4Hg36CaG): 
+[2025-02-02T14:06:36.102Z, core.go:113, g69] Incoming request: /rpc/docs.md (cDh5jJbFi12I431GgBj3jHa21JcEcAc1): 
+[2025-02-02T14:06:36.102Z, core.go:230, g69] (0s) docs.md (cDh5jJbFi12I431GgBj3jHa21JcEcAc1)
+[2025-02-02T14:06:38.145Z, core.go:113, g69] Incoming request: /rpc/docs.md (f4gA5J4I4J4Bg3bDaAfIi3i16D5EgIg5): 
+[2025-02-02T14:06:38.145Z, core.go:230, g69] (0s) docs.md (f4gA5J4I4J4Bg3bDaAfIi3i16D5EgIg5)
+[2025-02-02T14:06:40.165Z, core.go:113, g69] Incoming request: /rpc/docs.md (5GeFi263dAi1a3b5dFdE53g36HeI32e1): 
+[2025-02-02T14:06:40.165Z, core.go:230, g69] (0s) docs.md (5GeFi263dAi1a3b5dFdE53g36HeI32e1)
+[2025-02-02T14:06:42.268Z, core.go:113, g69] Incoming request: /rpc/docs.md (2DaCd46BcGiIa31J3Gb14C6Fi2e52E2I): 
+[2025-02-02T14:06:42.268Z, core.go:230, g69] (0s) docs.md (2DaCd46BcGiIa31J3Gb14C6Fi2e52E2I)
+[2025-02-02T14:06:44.409Z, core.go:113, g69] Incoming request: /rpc/docs.md (dAi3a2aI5ChD4C31f2fHd5jHg1aHbI5G): 
+[2025-02-02T14:06:44.409Z, core.go:230, g69] (0s) docs.md (dAi3a2aI5ChD4C31f2fHd5jHg1aHbI5G)
+[2025-02-02T14:06:46.483Z, core.go:113, g69] Incoming request: /rpc/docs.md (d31AiI2CfFh5hGeA16h3jFdDeCgC3Jg6): 
+[2025-02-02T14:06:46.483Z, core.go:230, g69] (0s) docs.md (d31AiI2CfFh5hGeA16h3jFdDeCgC3Jg6)
+[2025-02-02T14:06:48.508Z, core.go:113, g69] Incoming request: /rpc/docs.md (hEiEd5gIeJ5H3Gc51Eg4244661gA6B4F): 
+[2025-02-02T14:06:48.508Z, core.go:230, g69] (506.4µs) docs.md (hEiEd5gIeJ5H3Gc51Eg4244661gA6B4F)
+[2025-02-02T14:06:51.019Z, core.go:113, g69] Incoming request: /rpc/docs.md (e4i5h53E3EfD6IfCiIjAd4b4a44I11j2): 
+[2025-02-02T14:06:51.019Z, core.go:230, g69] (0s) docs.md (e4i5h53E3EfD6IfCiIjAd4b4a44I11j2)

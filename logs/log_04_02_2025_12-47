@@ -1,0 +1,31 @@
+[2025-02-04T12:47:17.686Z, basic.go:166, g1] 65c2fE351A22h3j1iJhA1G215E462A3C 65c2fE351A22h3j1iJhA1G215E462A3C 65d2fE451A22h3j1iJhA1G215E462A3C
+[2025-02-04T12:47:17.744Z, core.go:467, g1] 5 procedures registered
+[2025-02-04T12:47:17.744Z, core.go:468, g1] Listen of port 6600
+[2025-02-04T12:47:21.335Z, core.go:160, g20] [In] /rpc/docs.md (351BbJhCgHdF64153JdIhH5H4D43e5i3): 
+[2025-02-04T12:47:21.335Z, core.go:287, g20] [Out, 0s] docs.md (351BbJhCgHdF64153JdIhH5H4D43e5i3)
+[2025-02-04T12:47:23.523Z, core.go:160, g20] [In] /rpc/docs.md (b1d6bFi6bD41a6cFeA351AhCaIc5615F): {"Filter":"l"}
+[2025-02-04T12:47:23.523Z, core.go:287, g20] [Out, 0s] docs.md (b1d6bFi6bD41a6cFeA351AhCaIc5615F)
+[2025-02-04T12:47:23.667Z, core.go:160, g20] [In] /rpc/docs.md (d1hDcCh25F3CdDhBeAeF251EfAj3dB6J): {"Filter":"lo"}
+[2025-02-04T12:47:23.668Z, core.go:287, g20] [Out, 356.8µs] docs.md (d1hDcCh25F3CdDhBeAeF251EfAj3dB6J)
+[2025-02-04T12:47:23.696Z, core.go:160, g20] [In] /rpc/docs.md (dJaF22eI2HdAg33311e1aI3EbFe4iF3B): {"Filter":"log"}
+[2025-02-04T12:47:23.697Z, core.go:287, g20] [Out, 996.5µs] docs.md (dJaF22eI2HdAg33311e1aI3EbFe4iF3B)
+[2025-02-04T12:47:23.816Z, core.go:160, g20] [In] /rpc/docs.md (b3a1fJeCiCb4hD24d2d132gDfF4F6J23): {"Filter":"logi"}
+[2025-02-04T12:47:23.816Z, core.go:287, g20] [Out, 0s] docs.md (b3a1fJeCiCb4hD24d2d132gDfF4F6J23)
+[2025-02-04T12:47:23.855Z, core.go:160, g20] [In] /rpc/docs.md (55gDe65AeF1EaBeEi3g5i6dGaCiFhD3H): {"Filter":"login"}
+[2025-02-04T12:47:23.855Z, core.go:287, g20] [Out, 0s] docs.md (55gDe65AeF1EaBeEi3g5i6dGaCiFhD3H)
+[2025-02-04T12:48:07.544Z, core.go:160, g35] [In] /rpc/Login (b36551e43GdJdCaF5Da2hDi3bC2563hJ): {
+    "Username": "aaa",
+    "Password": "bbb"
+}
+[2025-02-04T12:48:07.544Z, core.go:287, g35] [Out, 509.9µs] Login (b36551e43GdJdCaF5Da2hDi3bC2563hJ)
+[2025-02-04T12:48:12.916Z, core.go:160, g35] [In] /rpc/Login (bI1G3G3AcG53616DeB6Ih6j2hCgB4125): {
+    "Username": "Pupa",
+    "Password": "secret"
+}
+[2025-02-04T12:48:12.916Z, core.go:287, g35] [Out, 0s] Login (bI1G3G3AcG53616DeB6Ih6j2hCgB4125)
+[2025-02-04T12:48:18.41Z, core.go:160, g35] [In] /rpc/Login (hB11gHiDbB321F4C2FjCgBf5eGfB52gA): {
+    "Username": "Pupa",
+}
+[2025-02-04T12:48:19.144Z, core.go:160, g35] [In] /rpc/Login (h6hFfB63i525fD6DbA5C36i54DfF6HjB): {
+    "Username": "Pupa"
+}

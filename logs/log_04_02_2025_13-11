@@ -1,0 +1,6 @@
+[2025-02-04T13:11:22.048Z, basic.go:157, g1] fId5d1j6233AeIdCaIaI62f3f1hAe4hF fId5d1j6233AeIdCaIaI62f3f1hAe4hF fId5d1j6233AeIdCaIaI62f3f1hAf4hF
+[2025-02-04T13:11:22.116Z, core.go:473, g1] 5 procedures registered
+[2025-02-04T13:11:22.116Z, core.go:474, g1] Listen of port 6600
+[2025-02-04T13:11:23.078Z, core.go:160, g5] [In] /rpc/Login (4C1I35j62D12dBhG5F35j22Fi2e4cDe1): {
+    "Username": "Pupa"
+}

@@ -1,0 +1,7 @@
+[2025-02-04T12:42:40.209Z, basic.go:166, g1] jJ4Jh1gC5JaDf32A32iJjIgE4Fb6eGa5 jJ4Jh1gC5JaDf32A32iJjIgE4Fb6eGa5 jJ4Jh1gC5JaDf32A42iJjIgE4Fb6eGb5
+[2025-02-04T12:42:40.286Z, core.go:466, g1] 5 procedures registered
+[2025-02-04T12:42:40.286Z, core.go:467, g1] Listen of port 6600
+[2025-02-04T12:42:40.506Z, core.go:159, g7] [In] /documentation_reader.html (c3f22DbJ164F2IdI1C543Ee4c4a24Bc3): 
+[2025-02-04T12:42:40.608Z, core.go:159, g7] [In] /rpc/docs.md (eC1HfHd6hH65gCiBcBgIhFi26BjB2IiC): 
+[2025-02-04T12:42:45.312Z, core.go:114, g7] ptr
+[2025-02-04T12:42:52.852Z, core.go:286, g7] [Out, 12.2438317s] docs.md (eC1HfHd6hH65gCiBcBgIhFi26BjB2IiC)

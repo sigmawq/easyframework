@@ -43,13 +43,13 @@ func _TypeToMarkdown(value reflect.Type, sb *strings.Builder, indent int, newlin
 	I don't want to overcomplicate the system yet, but we will likely need some user mapping for such situations.
 	*/
 	if value.Name() == "UUID" {
-		sb.WriteString("uuid")
+		sb.WriteString("<b>uuid</b>")
 	} else if value.Name() == "Timestamp" || value.Name() == "Timestamptz" {
-		sb.WriteString("timestamp")
+		sb.WriteString("<b>timestamp</b>")
 	} else if value.Name() == "Time" {
-		sb.WriteString("time")
+		sb.WriteString("<b>time</b>")
 	} else if value.Kind() == reflect.Interface && value.NumMethod() == 0 {
-		sb.WriteString("any")
+		sb.WriteString("<b>any</b>")
 	} else if value.Kind() == reflect.Struct {
 		sb.WriteString("{\n")
 
@@ -89,7 +89,7 @@ func _TypeToMarkdown(value reflect.Type, sb *strings.Builder, indent int, newlin
 
 				description := ParseFieldDescription(field)
 				if description != "" {
-					sb.WriteString(fmt.Sprintf(" // %v", description))
+					sb.WriteString(fmt.Sprintf(" //%v", description))
 				}
 
 				sb.WriteString("\n")
@@ -117,12 +117,12 @@ func _TypeToMarkdown(value reflect.Type, sb *strings.Builder, indent int, newlin
 		WriteWithIndent(sb, "]", indent)
 	} else if value.Kind() == reflect.Map {
 		if value.Elem().Kind() == reflect.Interface && value.Elem().NumMethod() == 0 {
-			sb.WriteString("(any data)")
+			sb.WriteString("<b>(any data)</b>")
 		} else {
-			sb.WriteString("(map)")
+			sb.WriteString("<b>(map)</b>")
 		}
 	} else {
-		sb.WriteString(value.Name())
+		sb.WriteString(fmt.Sprintf("<b>%v</b>", value.Name()))
 	}
 }
 
@@ -190,12 +190,12 @@ func GetDocumentation(context *Context, filter string) string {
 	var sb strings.Builder
 	for _, categoryProcedures := range proceduresByCategoryOrdered {
 
-		sb.WriteString("<details>\n")
+		sb.WriteString("<details open=\"true\">\n")
 		categoryName := categoryProcedures.Category
 		if categoryName == "" {
 			categoryName = "Other"
 		}
-		sb.WriteString(fmt.Sprintf("<summary>%v (%v)</summary>\n\n", categoryName, len(*categoryProcedures.Procedures)))
+		sb.WriteString(fmt.Sprintf("<summary><b>%v (%v)</b></summary>\n", categoryName, len(*categoryProcedures.Procedures)))
 
 		for _, procedureName := range *categoryProcedures.Procedures {
 			sb.WriteString(context.Procedures[procedureName].Documentation)

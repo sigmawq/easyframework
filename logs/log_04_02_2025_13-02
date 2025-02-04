@@ -1,0 +1,15 @@
+[2025-02-04T13:02:08.134Z, basic.go:157, g1] 6G5HeE32dAhJ12a51Ci5jAjE5Jg6eJ3D 6G5HeE32dAhJ12a51Ci5jAjE5Jg6eJ3D 6G5HeE42dAhJ22b51Cj5jAjE5Jh6eJ3D
+[2025-02-04T13:02:08.192Z, core.go:467, g1] 5 procedures registered
+[2025-02-04T13:02:08.192Z, core.go:468, g1] Listen of port 6600
+[2025-02-04T13:02:11.122Z, core.go:160, g34] [In] /rpc/Login (3Gg653hDhG2J662Bb1jGcHcI5J536Ib5): {
+    "Username": "Pupa"
+}
+[2025-02-04T13:02:25.901Z, core.go:160, g34] [In] /rpc/Login (5A25jEjG561AiI3I31a5dCi626dFaG3D): {
+    "Username": "Pupa"
+}
+[2025-02-04T13:02:26.386Z, core.go:160, g34] [In] /rpc/Login (hIjFgEdCeIbHfHg65IjCaFh5g4c261eG): {
+    "Username": "Pupa"
+}
+[2025-02-04T13:04:26.437Z, core.go:160, g35] [In] /rpc/Login (eDa6dG1Ig3c5g55EdEeJ1E5AiCg51CfJ): {
+    "Username": "Pupa"
+}

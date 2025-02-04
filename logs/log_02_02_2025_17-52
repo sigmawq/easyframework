@@ -1,0 +1,10 @@
+[2025-02-02T17:52:10.086Z, basic.go:166, g1] 5Fb524jBhBbIgE534EjFeHjCaJ12cGj4 5Fb524jBhBbIgE534EjFeHjCaJ12cGj4 5Fb524jBhBbIgE634EjFeHjCaJ22cGj4
+[2025-02-02T17:52:10.137Z, core.go:404, g1] 5 procedures registered
+[2025-02-02T17:52:10.137Z, core.go:405, g1] Listen of port 6600
+[2025-02-02T17:52:11.895Z, core.go:113, g7] Incoming request: /log_reader.html (eJj1e66C164Cf56Ib432dFgBe3aCeIeI): 
+[2025-02-02T17:52:11.909Z, core.go:113, g7] Incoming request: /favicon.ico (aFbHg1h4bF6Ij421dJaEgJ4HiC2Da5g3): 
+[2025-02-02T17:52:21.411Z, core.go:113, g9] Incoming request: /documentation_reader.html (jHeDeBiH56jCjH1Eg356iI3Da6e2dF4F): 
+[2025-02-02T17:52:21.471Z, core.go:113, g9] Incoming request: /wasm_exec.js (14aD6E6414f53Ah5c5aGf6dA3EeE41b1): 
+[2025-02-02T17:52:21.487Z, core.go:113, g21] Incoming request: /documentation_reader.wasm (aFjIi4cB3454i41B1FiJ4G24gBfI13aJ): 
+[2025-02-02T17:52:21.569Z, core.go:113, g21] Incoming request: /rpc/docs.md (4EeA5GgF3H2Ba6bD5A1H3444g3b2gHdH): 
+[2025-02-02T17:52:21.569Z, core.go:230, g21] (0s) docs.md (4EeA5GgF3H2Ba6bD5A1H3444g3b2gHdH)

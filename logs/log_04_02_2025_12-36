@@ -1,0 +1,385 @@
+[2025-02-04T12:36:34.717Z, basic.go:166, g1] g54CgI3C656DiHjBeA246A44hDc2b3eI g54CgI3C656DiHjBeA246A44hDc2b3eI h54CgI3C656DiHjBeA246A44hDd2b3eI
+[2025-02-04T12:36:36.634Z, core.go:465, g1] 5 procedures registered
+[2025-02-04T12:36:36.634Z, core.go:466, g1] Listen of port 6600
+[2025-02-04T12:36:46.977Z, core.go:158, g7] [In] /documentation_reader.html (gCaBh15AcG14a4cI5D45i316jI3F42dG): 
+[2025-02-04T12:36:52.666Z, core.go:158, g7] [In] /rpc/docs.md (4GeJf5h6e44B4Fa33G24f3aEeJeAbF2B): 
+[2025-02-04T12:38:44.663Z, server.go:3489, g7] http: panic serving 127.0.0.1:59076: reflect: call of reflect.Value.Field on ptr Value
+goroutine 7 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc000144048?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc000110180, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000159120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc000110180, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc00013a0e0}, 0xc000118140)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc00013a0e0}, 0xc000118140)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000c82d0, {0x14a1468, 0xc00010e000})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:38:45.468Z, core.go:158, g20] [In] /rpc/docs.md (f1636B3Gc3a56J6A4EcIeBfG2B6G561A): 
+[2025-02-04T12:38:46.24Z, server.go:3489, g20] http: panic serving 127.0.0.1:59080: reflect: call of reflect.Value.Field on ptr Value
+goroutine 20 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc0000084b0?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc000260f60, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000317120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc000260f60, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0000c22a0}, 0xc00008a280)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0000c22a0}, 0xc00008a280)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc00011e1b0, {0x14a1468, 0xc0000ca0f0})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:38:46.302Z, core.go:158, g9] [In] /rpc/docs.md (f5gH5H21dBi5aHcEi6fIhGiBbJf6f4aB): 
+[2025-02-04T12:38:46.443Z, server.go:3489, g9] http: panic serving 127.0.0.1:59081: reflect: call of reflect.Value.Field on ptr Value
+goroutine 9 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc0000084e0?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc000261060, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000029120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc000261060, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0000c2380}, 0xc000118280)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0000c2380}, 0xc000118280)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000c8480, {0x14a1468, 0xc00010e190})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:38:46.506Z, core.go:158, g11] [In] /rpc/docs.md (2463c2bCe1gF5F5A53e6jDc352j13A2H): 
+[2025-02-04T12:38:46.63Z, server.go:3489, g11] http: panic serving 127.0.0.1:59082: reflect: call of reflect.Value.Field on ptr Value
+goroutine 11 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc000144078?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc0001102a0, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000313120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc0001102a0, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc00013a1c0}, 0xc0001183c0)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc00013a1c0}, 0xc0001183c0)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000c8630, {0x14a1468, 0xc00010e1e0})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:38:46.685Z, core.go:158, g22] [In] /rpc/docs.md (iFc4i4h2cAbAhHb55Ih5b2hI22332EaI): 
+[2025-02-04T12:38:46.802Z, server.go:3489, g22] http: panic serving 127.0.0.1:59083: reflect: call of reflect.Value.Field on ptr Value
+goroutine 22 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc000008510?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc000261170, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000029120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc000261170, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0000c2460}, 0xc00008a3c0)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0000c2460}, 0xc00008a3c0)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc00011e360, {0x14a1468, 0xc0000ca280})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:38:46.865Z, core.go:158, g13] [In] /rpc/docs.md (25dFcJ6EeD2115bEdAiC15516HgGa2aC): 
+[2025-02-04T12:38:46.983Z, server.go:3489, g13] http: panic serving 127.0.0.1:59084: reflect: call of reflect.Value.Field on ptr Value
+goroutine 13 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc000008540?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc000261270, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000313120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc000261270, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0000c2540}, 0xc000118500)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0000c2540}, 0xc000118500)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000c87e0, {0x14a1468, 0xc00010e2d0})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:38:47.04Z, core.go:158, g15] [In] /rpc/docs.md (3JbI62fGd13J6A6DiI1G2DeGeFh3cD2I): 
+[2025-02-04T12:38:47.15Z, server.go:3489, g15] http: panic serving 127.0.0.1:59085: reflect: call of reflect.Value.Field on ptr Value
+goroutine 15 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc0001440a8?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc0001103c0, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000029120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc0001103c0, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc00013a2a0}, 0xc000118640)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc00013a2a0}, 0xc000118640)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000c8990, {0x14a1468, 0xc00010e320})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:38:47.204Z, core.go:158, g24] [In] /rpc/docs.md (6Fg36Jb4jAb1g6cE65iHgDcCgAgF3Bf1): 
+[2025-02-04T12:38:48.631Z, server.go:3489, g24] http: panic serving 127.0.0.1:59086: reflect: call of reflect.Value.Field on ptr Value
+goroutine 24 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc000008570?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc000261380, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000313120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc000261380, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0000c2620}, 0xc00008a500)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0000c2620}, 0xc00008a500)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc00011e510, {0x14a1468, 0xc0000ca410})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:38:48.633Z, core.go:158, g34] [In] /rpc/docs.md (1J6F5HdDc5j4cH5IcC4Hb4c41G441F4A): 
+[2025-02-04T12:38:48.891Z, server.go:3489, g34] http: panic serving 127.0.0.1:59087: reflect: call of reflect.Value.Field on ptr Value
+goroutine 34 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc0001440d8?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc0001104d0, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000029120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc0001104d0, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc00013a380}, 0xc000118780)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc00013a380}, 0xc000118780)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000c8b40, {0x14a1468, 0xc00010e410})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:38:48.893Z, core.go:158, g26] [In] /rpc/docs.md (iCi2jFcG33aF3Ad2iBcIi46AhAfB63c3): 
+[2025-02-04T12:38:48.952Z, server.go:3489, g26] http: panic serving 127.0.0.1:59088: reflect: call of reflect.Value.Field on ptr Value
+goroutine 26 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc0000085a0?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc000261490, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000313120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc000261490, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0000c2700}, 0xc00008a640)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0000c2700}, 0xc00008a640)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc00011e6c0, {0x14a1468, 0xc0000ca500})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:40:34.78Z, core.go:158, g36] [In] /documentation_reader.html (1G3GbE4B1Ia2fJiEg14BdEg4fCiHc43I): 
+[2025-02-04T12:40:34.885Z, core.go:158, g36] [In] /rpc/docs.md (521B5Ab4dI53gI2FaJfJh5g6fC4BiIeC): 
+[2025-02-04T12:41:16.72Z, server.go:3489, g36] http: panic serving 127.0.0.1:59095: reflect: call of reflect.Value.Field on ptr Value
+goroutine 36 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc0000085d0?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc000261590, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000029120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc000261590, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0000c27e0}, 0xc00008a780)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0000c27e0}, 0xc00008a780)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000c8cf0, {0x14a1468, 0xc00010e500})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:41:16.72Z, core.go:158, g38] [In] /rpc/docs.md (eAe2cAj4a3j4d6aB466EgF4Ci6cE1B5H): 
+[2025-02-04T12:41:16.722Z, server.go:3489, g38] http: panic serving 127.0.0.1:59096: reflect: call of reflect.Value.Field on ptr Value
+goroutine 38 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc000008600?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc000261690, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000313120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc000261690, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0000c28c0}, 0xc000118a00)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0000c28c0}, 0xc000118a00)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000c8e10, {0x14a1468, 0xc00010e5a0})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:41:16.723Z, core.go:158, g31] [In] /rpc/docs.md (b2f6iD4CcGbBc46J5I3Eh66G5GaHa3aE): 
+[2025-02-04T12:41:16.723Z, server.go:3489, g31] http: panic serving 127.0.0.1:59097: reflect: call of reflect.Value.Field on ptr Value
+goroutine 31 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc000008150?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc0002600a0, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000317120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc0002600a0, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0000c20e0}, 0xc00008a000)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0000c20e0}, 0xc00008a000)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000c8090, {0x14a1468, 0xc00010e000})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:41:16.725Z, core.go:158, g67] [In] /rpc/docs.md (6H61j3a56Fg5hBi6f3gBgH2IhD4Bj1d5): 
+[2025-02-04T12:41:16.725Z, server.go:3489, g67] http: panic serving 127.0.0.1:59098: reflect: call of reflect.Value.Field on ptr Value
+goroutine 67 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc000008180?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc0002601a0, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000313120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc0002601a0, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0000c22a0}, 0xc000118000)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0000c22a0}, 0xc000118000)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc000000120, {0x14a1468, 0xc0000ca140})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:41:16.726Z, core.go:158, g69] [In] /rpc/docs.md (hB6Ib6bEcI2Fe32EbCi3d6g2bB52hCd2): 
+[2025-02-04T12:41:16.726Z, server.go:3489, g69] http: panic serving 127.0.0.1:59099: reflect: call of reflect.Value.Field on ptr Value
+goroutine 69 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc000144060?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc0001100d0, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc0003cd120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc0001100d0, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0003d6000}, 0xc000118140)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0003d6000}, 0xc000118140)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000002d0, {0x14a1468, 0xc0000ca190})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:41:16.728Z, core.go:158, g33] [In] /rpc/docs.md (j25AaC3GgD2524f42G2B2I3C5F632DbC): 
+[2025-02-04T12:41:16.728Z, server.go:3489, g33] http: panic serving 127.0.0.1:59100: reflect: call of reflect.Value.Field on ptr Value
+goroutine 33 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc00014a018?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc000024f20, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc0003c9120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc000024f20, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc00013e000}, 0xc000122000)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc00013e000}, 0xc000122000)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000c8240, {0x14a1468, 0xc00047e000})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:41:16.729Z, core.go:158, g58] [In] /rpc/docs.md (b1gFeCg22E33dBj4gDb1j624i5hA5JhG): 
+[2025-02-04T12:41:16.729Z, server.go:3489, g58] http: panic serving 127.0.0.1:59101: reflect: call of reflect.Value.Field on ptr Value
+goroutine 58 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc000144090?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc0001101e0, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc0003cd120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc0001101e0, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0003d60e0}, 0xc000118280)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0003d60e0}, 0xc000118280)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc000124120, {0x14a1468, 0xc0000ca280})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:41:16.73Z, core.go:158, g83] [In] /rpc/docs.md (hCf56B151A621346331HiEi1eCgD2C2D): 
+[2025-02-04T12:41:16.73Z, server.go:3489, g83] http: panic serving 127.0.0.1:59102: reflect: call of reflect.Value.Field on ptr Value
+goroutine 83 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc0001440c0?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc0001102e0, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc0003c9120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc0001102e0, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc0003d61c0}, 0xc000122140)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc0003d61c0}, 0xc000122140)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000c83f0, {0x14a1468, 0xc00047e0f0})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:41:16.732Z, core.go:158, g85] [In] /rpc/docs.md (34jH6Ef5jGd4i5bAh3bA4Ah5eG5Fd3hH): 
+[2025-02-04T12:41:16.732Z, server.go:3489, g85] http: panic serving 127.0.0.1:59103: reflect: call of reflect.Value.Field on ptr Value
+goroutine 85 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc00014a048?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc000025050, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc0001b1120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc000025050, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc00013e0e0}, 0xc000122280)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc00013e0e0}, 0xc000122280)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0000c85a0, {0x14a1468, 0xc00047e140})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a
+[2025-02-04T12:41:16.734Z, core.go:158, g60] [In] /rpc/docs.md (c2f5iJ55cH21h66Ig2iE124GcJc3e4hH): 
+[2025-02-04T12:41:16.734Z, server.go:3489, g60] http: panic serving 127.0.0.1:59104: reflect: call of reflect.Value.Field on ptr Value
+goroutine 60 [running]:
+net/http.(*conn).serve.func1()
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:1947 +0x13f
+panic({0x13f3be0?, 0xc00014a078?})
+	C:/Users/sigmawq/go/go1.23.3/src/runtime/panic.go:785 +0x136
+reflect.Value.Field({0x13db180, 0xc000025150, 0x16}, 0x0)
+	C:/Users/sigmawq/go/go1.23.3/src/reflect/value.go:1269 +0x24d
+github.com/sigmawq/easyframework.ValidateRequestStruct(0xc000313120, {0x14a45a8, 0x1401fc0}, {0x13db180, 0xc000025150, 0x16}, {0x0, 0x0})
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:118 +0x178
+github.com/sigmawq/easyframework.(*Context).ServeHTTP(0xc0000ca000, {0x14a0ef0, 0xc00013e1c0}, 0xc00008a280)
+	C:/Users/sigmawq/GolandProjects/easyframework/core.go:219 +0xa65
+net/http.serverHandler.ServeHTTP({0xc0000dc2d0}, {0x14a0ef0, 0xc00013e1c0}, 0xc00008a280)
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3210 +0x257
+net/http.(*conn).serve(0xc0001242d0, {0x14a1468, 0xc00010e190})
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:2092 +0x1ab5
+created by net/http.(*Server).Serve in goroutine 1
+	C:/Users/sigmawq/go/go1.23.3/src/net/http/server.go:3360 +0xa9a

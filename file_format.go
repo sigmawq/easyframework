@@ -31,6 +31,7 @@ func Pack[T any](target *T) ([]byte, error) {
 
 type StructFieldData struct {
 	FieldIndex int
+	IsRequired bool
 }
 
 var preprocessedStructs map[reflect.Type]map[int]StructFieldData
@@ -38,6 +39,11 @@ var preprocessedStructs map[reflect.Type]map[int]StructFieldData
 func PreprocessStruct(theStruct reflect.Type) {
 	if preprocessedStructs == nil {
 		preprocessedStructs = make(map[reflect.Type]map[int]StructFieldData, 0)
+	}
+	
+	_, alreadyDone := preprocessedStructs[theStruct]
+	if alreadyDone {
+		return
 	}
 
 	structMapping := make(map[int]StructFieldData)
@@ -210,11 +216,8 @@ func _Pack(buffer *Buffer, targetType reflect.Type, targetValue reflect.Value, f
 		CopyToBuffer(buffer, uint32(len(str)))
 		CopyToBufferRaw(buffer, unsafe.Pointer(&str[0]), len(str))
 	case reflect.Struct:
-		structData, hasStructData := preprocessedStructs[targetType]
-		if !hasStructData {
-			PreprocessStruct(targetType)
-			structData = preprocessedStructs[targetType]
-		}
+		PreprocessStruct(targetType)
+		structData, _ := preprocessedStructs[targetType]
 
 		for fieldID, fieldData := range structData {
 			fieldType := targetType.Field(fieldData.FieldIndex)

@@ -1,0 +1,9 @@
+[2025-02-04T13:08:16.715Z, basic.go:157, g1] jAj13DbH3EhF3D13d4bJg611dE145D6G jAj13DbH3EhF3D13d4bJg611dE145D6G jAj13DbH3EhF3D23d4bJh621dE245D6G
+[2025-02-04T13:08:16.788Z, core.go:474, g1] 5 procedures registered
+[2025-02-04T13:08:16.788Z, core.go:475, g1] Listen of port 6600
+[2025-02-04T13:08:18.806Z, core.go:160, g7] [In] /documentation_reader.html (21gCjGjBe4a2aFeCaD3JgIcC41aG2A4H): 
+[2025-02-04T13:08:18.934Z, core.go:160, g7] [In] /rpc/docs.md (2Ce3eChGh35I54cEiCbEe4eBb22E2GdE): 
+[2025-02-04T13:08:18.934Z, core.go:294, g7] [Out, 0s] docs.md (2Ce3eChGh35I54cEiCbEe4eBb22E2GdE)
+[2025-02-04T13:08:21.406Z, core.go:160, g20] [In] /rpc/Login (aDi665cDbHb22EgFh6gB663I5GiI2I2D): {
+    "Username": "Pupa"
+}

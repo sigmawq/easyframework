@@ -5,11 +5,12 @@ normie routing: - not really needed, just use a separate gorilla mux router with
 id128:
     json marshal/unmarshal - DONE
 validator: 
-    validate request structs
+    validate request structs - DONE
 documentation generator:
-    some basic docgen for types that are mentioned in newrpc
+    some basic docgen for types that are mentioned in newrpc - DONE
 database:
 	iterate, collect
 	iterate, collect by condition
 	iterate, remove by condition
 	
+return error list for all NewRPC() calls, don't panic on the first one

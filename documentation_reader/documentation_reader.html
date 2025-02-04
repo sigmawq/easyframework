@@ -22,7 +22,7 @@
 			}
         
 			body {
-				font-family: Arial, Helvetica, sans-serif;
+				font-family: 'Fira Code';font-size: 22px;
 				padding-top: 5px;
 				padding-right: 5px;
 				padding-bottom: 5px;
@@ -59,7 +59,7 @@
                 padding-top: 10px;
                 padding-right: 10px;
                 padding-bottom: 30px;
-                padding-left: 20px;
+                padding-left: 50px;
 			}
 			
 			.search_input {
@@ -68,13 +68,28 @@
                 padding-bottom: 15px;
                 padding-left: 5px;
 			}   
+			
+			.grey_comment {
+                color: #8c8c8c;
+                font-style: italic;
+                display: flex;
+			}
+            
+            .outer_div {
+                padding-left: 10%;
+                padding-right: 10%;
+                padding-bottom: 1%;
+                padding-top: 1%;
+            }
 		</style>
     </head>
     <body>
+        <div class="outer_div">
     	<div class="search_input">
     		<b> Search: </b>
     		<input type="text" id="search_input" name="name" required size="30" />
     	</div>
     	<div id="documentation_body"> empty! </div>
+        </div>
     </body>
 </html>
