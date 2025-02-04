@@ -1,7 +1,0 @@
-[2025-02-02T13:58:10.403Z, basic.go:166, g1] h6i62B2D5I32bCd6aEjH1Dj6aAaEd4jJ h6i62B2D5I32bCd6aEjH1Dj6aAaEd4jJ h6j62B2D5I42bCd6aEjH1Dj6aAaEd4jJ
-[2025-02-02T13:58:10.457Z, core.go:404, g1] 5 procedures registered
-[2025-02-02T13:58:10.457Z, core.go:405, g1] Listen of port 6600
-[2025-02-02T13:58:13.485Z, core.go:113, g18] Incoming request: /log_reader.html (f36Gb4cDbH66bCf1fJbA1D45dBgJ3FeC): 
-[2025-02-02T13:58:13.514Z, core.go:113, g18] Incoming request: /log_reader.wasm (bE412Gj1aHjD16c25CgHb2c3iIcHhBg6): 
-[2025-02-02T13:58:13.542Z, core.go:113, g18] Incoming request: /favicon.ico (2Da3iEfA45g1hAj2eH6223i6cBi6g61C): 
-[2025-02-02T13:59:04.186Z, core.go:113, g35] Incoming request: /log_reader.html (dI44e4i251c44Gc5hA5C4Bb2fIgA6Ha4): 

@@ -1,6 +1,0 @@
-[2025-02-02T13:34:25.292Z, basic.go:166, g1] 4AaH5C2Ce3jBj2h4g3j51Cc55CcDaJ3F 4AaH5C2Ce3jBj2h4g3j51Cc55CcDaJ3F 4AaH5C2Cf3jBj2h4h3j51Cd55CcDaJ3F
-[2025-02-02T13:34:25.343Z, core.go:404, g1] 5 procedures registered
-[2025-02-02T13:34:25.344Z, core.go:405, g1] Listen of port 6600
-[2025-02-02T13:34:28.783Z, core.go:113, g7] Incoming request: /rpc/LogList (43g142g34HfBdEdEc55Dj1aA44g41BbH): 
-[2025-02-02T13:34:28.784Z, core.go:230, g7] (1.0245ms) LogList (43g142g34HfBdEdEc55Dj1aA44g41BbH)
-[2025-02-02T13:34:28.8Z, core.go:113, g7] Incoming request: /favicon.ico (a2aIb5e664bDi555iG1DcDg433111Cj6): 
