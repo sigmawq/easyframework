@@ -9,8 +9,11 @@ validator:
 documentation generator:
     some basic docgen for types that are mentioned in newrpc - DONE
 database:
-	iterate, collect
-	iterate, collect by condition
-	iterate, remove by condition
+	iterate, collect - DONE
+	iterate, collect by condition - DONE
+	iterate, remove by condition - DONE
+	format:
+		handle slice encoding/decoding
+rate limiter
 	
 return error list for all NewRPC() calls, don't panic on the first one

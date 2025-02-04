@@ -89,7 +89,7 @@ func _TypeToMarkdown(value reflect.Type, sb *strings.Builder, indent int, newlin
 
 				description := ParseFieldDescription(field)
 				if description != "" {
-					sb.WriteString(fmt.Sprintf(" //%v", description))
+					sb.WriteString(fmt.Sprintf(" // %v", description))
 				}
 
 				sb.WriteString("\n")

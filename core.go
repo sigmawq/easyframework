@@ -48,20 +48,20 @@ type Procedure struct {
 	OutputType                   reflect.Type
 	ErrorType                    reflect.Type
 	Calls                        uint64
-	AuthorizationRequired        bool
+	AuthorizationNotRequired     bool
 	Description                  string
 	Category                     string
 	Documentation                string
 	NoAutomaticResponseOnSuccess bool // @TODO: better system for static content
+	UserData                     interface{}
 }
 
 type InitializeParams struct {
-	Port                          int
-	StdoutLogging                 bool
-	FileLogging                   bool
-	DatabasePath                  string
-	Authorization                 func(*RequestContext, http.ResponseWriter, *http.Request) bool
-	DontInitializeBuiltinDatabase bool
+	Port          int
+	StdoutLogging bool
+	FileLogging   bool
+	DatabasePath  string
+	Authorization func(*RequestContext, http.ResponseWriter, *http.Request) bool
 }
 
 func Initialize(ctx *Context, params InitializeParams) error {
@@ -74,7 +74,7 @@ func Initialize(ctx *Context, params InitializeParams) error {
 
 	CreateDirectoryIfDoesntExist("logs")
 
-	if !params.DontInitializeBuiltinDatabase { // Setup database
+	if params.DatabasePath != "" { // Setup database
 		database, err := bolt.Open(params.DatabasePath, 0777, nil)
 		if err != nil {
 			return err
@@ -160,6 +160,7 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	log.Printf("[In] %v (%v): %v", request.RequestURI, requestID, string(data))
 
 	rpcIndex := strings.Index(request.RequestURI, "/rpc/")
+	// @TODO: Authorization for static content?
 	if rpcIndex == -1 { // Serve static content
 		staticName := strings.TrimLeft(request.RequestURI, "/")
 		filepath, ok := ef.StaticData[staticName]
@@ -184,11 +185,12 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	}
 
 	requestContext := RequestContext{
+		Procedure:      &procedure,
 		ResponseWriter: writer,
 		Request:        request,
 		RequestID:      requestID,
 	}
-	if procedure.AuthorizationRequired {
+	if !procedure.AuthorizationNotRequired {
 		if ef.Authorization != nil {
 			if !ef.Authorization(&requestContext, writer, request) {
 				RJson(writer, 400, Problem{
@@ -198,7 +200,6 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 				return
 			}
 		}
-
 	}
 
 	var args []reflect.Value
@@ -288,11 +289,8 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	log.Printf("[Out, %v] %v (%v)", diff, procedureName, requestID)
 }
 
-func NewREST(efContext *Context, path string, handler string) { // bruh..
-
-}
-
 type RequestContext struct {
+	Procedure      *Procedure
 	ResponseWriter http.ResponseWriter
 	Request        *http.Request
 	RequestID      string
@@ -302,10 +300,11 @@ type RequestContext struct {
 type NewRPCParams struct {
 	Name                         string
 	Handler                      interface{}
-	AuthorizationRequired        bool
+	AuthorizationNotRequired     bool
 	Description                  string
 	Category                     string
 	NoAutomaticResponseOnSuccess bool
+	UserData                     interface{}
 }
 
 func NewRPC(efContext *Context, params NewRPCParams) {
@@ -392,10 +391,11 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 		InputType:                    inputTypeOf,
 		OutputType:                   outputTypeof,
 		ErrorType:                    errorTypeof,
-		AuthorizationRequired:        params.AuthorizationRequired,
+		AuthorizationNotRequired:     params.AuthorizationNotRequired,
 		Description:                  params.Description,
 		Category:                     params.Category,
 		NoAutomaticResponseOnSuccess: params.NoAutomaticResponseOnSuccess,
+		UserData:                     params.UserData,
 	}
 	{ // Generate procedure documentation
 		var sb strings.Builder
@@ -509,22 +509,23 @@ func (id *ID128) FromString(str string) error {
 		104: 8,
 		105: 9,
 		106: 10,
-		49:  27,
-		50:  28,
-		51:  29,
-		52:  30,
-		53:  31,
-		54:  32,
+		49:  11,
+		50:  12,
+		51:  13,
+		52:  14,
+		53:  15,
+		54:  16,
 	}
 	if len(str) != (len(*id) * 2) {
 		return errors.New("ID128: Wrong size")
 	}
+	str = strings.ToLower(str)
 
 	data := ([]byte)(str)
 	k := 0
 	for i := 0; i <= len(data)-1; i += 2 {
 		highChar := data[i]
-		lowChar := byte(unicode.ToLower(rune(data[i+1])))
+		lowChar := data[i+1]
 
 		highValue := table[highChar]
 		lowValue := table[lowChar]
@@ -539,11 +540,11 @@ func (id *ID128) FromString(str string) error {
 	return nil
 }
 
-func (id *ID128) MarshalJSON() ([]byte, error) {
+func (id ID128) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(id.String()))
 }
 
-func (id *ID128) UnmarshalJSON(src []byte) error {
+func (id ID128) UnmarshalJSON(src []byte) error {
 	if bytes.Equal(src, []byte("null")) {
 		return nil // no error
 	}

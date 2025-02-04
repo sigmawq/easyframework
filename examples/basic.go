@@ -22,15 +22,9 @@ const (
 )
 
 type User struct {
-	Age               int32        `id:"1"`
-	Dead              bool         `id:"2"`
-	Cringe            bool         `id:"3"`
-	Substruct         Substruct    `id:"4"`
-	SomeString        string       `id:"5"`
-	Type              UserType     `id:"6"`
-	Timestamp         uint64       `id:"7"`
-	PreferredNumbers  [2]int64     `id:"8"`
-	ArrayOfSubstructs [5]Substruct `id:"9"`
+	ID       ef.ID128 `id:"1"`
+	Name     string   `id:"2"`
+	Password string   `id:"3"`
 }
 
 type LoginRequest struct {
@@ -49,15 +43,42 @@ const (
 	ERROR_CONTENT_NOT_FOUND   = "content_not_found"
 )
 
-func Login(ctx *ef.RequestContext, request LoginRequest) (response LoginResponse, problem ef.Problem) {
-	if request.Username == "Pupa" && request.Password == "secret" {
-		response.SessionToken = ef.GenerateSixteenDigitCode()
-		response.Expiry = time.Now().Add(time.Hour * 24)
+func Login(ctx *ef.RequestContext, request LoginRequest) (response Session, problem ef.Problem) {
+	tx, _ := ef.WriteTx(efContext)
+	defer tx.Rollback()
+
+	users, _ := ef.GetBucket(tx, BUCKET_USERS)
+	var user User
+	if !ef.IterateFind(users, &user, func(id ef.ID128, value *User) bool {
+		return value.Name == request.Username
+	}) {
+		problem.ErrorID = ERROR_INVALID_CREDENTIALS
 		return
 	}
 
-	problem.ErrorID = ERROR_INVALID_CREDENTIALS
-	problem.Message = "Bad login/password"
+	if request.Password != user.Password {
+		problem.ErrorID = ERROR_INVALID_CREDENTIALS
+		return
+	}
+
+	sessionID := ef.NewID128()
+	response = Session{
+		ID:        sessionID,
+		UserID:    user.ID,
+		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+	}
+
+	sessions, _ := ef.GetBucket(tx, BUCKET_SESSIONS)
+	ef.Insert(sessions, sessionID, &response)
+
+	tx.Commit()
+
+	http.SetCookie(ctx.ResponseWriter, &http.Cookie{
+		Name:    "session",
+		Value:   sessionID.String(),
+		Expires: time.Unix(response.ExpiresAt, 0),
+	})
+
 	return
 }
 
@@ -66,15 +87,26 @@ func Logout(ctx *ef.RequestContext) (problem ef.Problem) {
 }
 
 const (
-	BUCKET_USERS = "Users"
+	BUCKET_USERS    = "Users"
+	BUCKET_SESSIONS = "Sessions"
 )
 
 func ListAllBuckets(ctx *ef.RequestContext) (result []interface{}, problem ef.Problem) {
 	tx, _ := efContext.Database.Begin(false)
-	bucket, _ := ef.GetBucket(tx, BUCKET_USERS)
 
-	users := ef.IterateCollectAll[User](bucket)
-	result = append(result, users)
+	{
+		bucket, _ := ef.GetBucket(tx, BUCKET_USERS)
+
+		things := ef.IterateCollectAll[User](bucket)
+		result = append(result, things)
+	}
+
+	{
+		bucket, _ := ef.GetBucket(tx, BUCKET_SESSIONS)
+
+		things := ef.IterateCollectAll[Session](bucket)
+		result = append(result, things)
+	}
 
 	return
 }
@@ -133,6 +165,48 @@ func RPC_GetLog(context *ef.RequestContext, request GetLogRequest) (logtext stri
 	return
 }
 
+type Session struct {
+	ID          ef.ID128 `id:"1"`
+	UserID      ef.ID128 `id:"2"`
+	ExpiresAt   int64    `id:"3"`
+	AccessCount int64    `id:"4"`
+}
+
+func Authorization(ctx *ef.RequestContext, w http.ResponseWriter, r *http.Request) bool {
+	_session, err := r.Cookie("session")
+	if err != nil {
+		return false
+	}
+
+	var sessionID ef.ID128
+	err = sessionID.FromString(_session.Value)
+	if err != nil {
+		return false
+	}
+
+	var session Session
+	if !ef.GetByID(efContext, BUCKET_SESSIONS, sessionID, &session) {
+		return false
+	}
+
+	var user User
+	if !ef.GetByID(efContext, BUCKET_USERS, session.UserID, &user) {
+		return false
+	}
+	session.AccessCount += 1
+
+	ef.InsertByID(efContext, BUCKET_SESSIONS, sessionID, &session)
+
+	log.Printf("User: %#v", user)
+	log.Printf("Session: %#v", session)
+
+	return true
+}
+
+type CustomProcedurePermission struct {
+	IsAdminOnly bool
+}
+
 func main() {
 	efContext = new(ef.Context)
 	params := ef.InitializeParams{
@@ -140,7 +214,7 @@ func main() {
 		StdoutLogging: true,
 		FileLogging:   true,
 		DatabasePath:  "db",
-		Authorization: nil,
+		Authorization: Authorization,
 	}
 	err := ef.Initialize(efContext, params)
 	if err != nil {
@@ -163,6 +237,11 @@ func main() {
 			panic(err)
 		}
 
+		err = ef.NewBucket(efContext, BUCKET_SESSIONS)
+		if err != nil {
+			panic(err)
+		}
+
 		tx, _ := efContext.Database.Begin(true)
 		defer tx.Rollback()
 
@@ -171,51 +250,36 @@ func main() {
 			panic(err)
 		}
 		{
-			user := User{
-				Age:        61,
-				Dead:       true,
-				Cringe:     true,
-				SomeString: "aaabbbcccddd",
-				Substruct:  Substruct{D: 444.666},
-				Type:       USER_TYPE_ADMIN,
-				PreferredNumbers: [2]int64{
-					1337, 1488,
-				},
-				ArrayOfSubstructs: [5]Substruct{
-					{100, 200},
-				},
+			user1 := User{
+				ID:       ef.NewID128(),
+				Name:     fmt.Sprintf("User-%v", ef.GenerateSixteenDigitCode()),
+				Password: ef.GenerateSixteenDigitCode(),
 			}
 
 			user2 := User{
-				Age:        40,
-				Dead:       true,
-				Cringe:     true,
-				SomeString: "addfdsfdlsfkdfgdfdfgdffggdfgfhfgjhgyujtyhrg",
-				Substruct:  Substruct{D: 222.666},
+				ID:       ef.NewID128(),
+				Name:     fmt.Sprintf("User-%v", ef.GenerateSixteenDigitCode()),
+				Password: ef.GenerateSixteenDigitCode(),
 			}
 
-			err := ef.Insert(bucket, ef.NewID128(), user)
+			err := ef.Insert(bucket, user1.ID, &user1)
 			if err != nil {
 				panic(err)
 			}
 
-			err = ef.Insert(bucket, ef.NewID128(), user2)
+			err = ef.Insert(bucket, user2.ID, &user2)
 			if err != nil {
 				panic(err)
 			}
 		}
 
-		ef.Iterate(bucket, func(userID ef.ID128, user *User) bool {
-			fmt.Printf("Unpacked user: %#v (ID %v)", user, userID)
-			return true
-		})
-
 		tx.Commit()
 	}
 
 	ef.NewRPC(efContext, ef.NewRPCParams{
-		Name:    "Login",
-		Handler: Login,
+		Name:                     "Login",
+		Handler:                  Login,
+		AuthorizationNotRequired: true,
 	})
 
 	ef.NewRPC(efContext, ef.NewRPCParams{
@@ -224,9 +288,10 @@ func main() {
 	})
 
 	ef.NewRPC(efContext, ef.NewRPCParams{
-		Name:        "ListBuckets",
-		Description: "Bla bla bla",
-		Handler:     ListAllBuckets,
+		Name:                     "ListBuckets",
+		Description:              "Bla bla bla",
+		Handler:                  ListAllBuckets,
+		AuthorizationNotRequired: true,
 	})
 
 	ef.NewRPC(efContext, ef.NewRPCParams{
@@ -234,12 +299,15 @@ func main() {
 		Name:        "LogList",
 		Description: "Get list of all logs",
 		Handler:     RPC_GetLogList,
+		UserData: CustomProcedurePermission{
+			IsAdminOnly: true,
+		},
 	})
 
 	ef.NewRPC(efContext, ef.NewRPCParams{
 		Name:                         "docs.md",
 		Handler:                      RPC_GetDocumentation,
-		AuthorizationRequired:        true,
+		AuthorizationNotRequired:     true,
 		NoAutomaticResponseOnSuccess: true,
 	})
 

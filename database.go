@@ -46,23 +46,30 @@ func GetBucket(tx *bolt.Tx, id BucketID) (*bolt.Bucket, error) {
 	return bucket, nil
 }
 
-func GetByID[T any](ctx *Context, bucketID BucketID, ID ID128, result *T) (err error) {
-	err = ctx.Database.View(func(tx *bolt.Tx) error {
+func GetByID[T any](ctx *Context, bucketID BucketID, ID ID128, result *T) bool {
+	var found bool
+	ctx.Database.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketID))
 		if bucket == nil {
 			return BucketNotFoundError{}
 		}
 
-		_result := bucket.Get([]byte(ID[:]))
+		_result := bucket.Get(ID[:])
 		if _result == nil {
 			return nil
 		}
 
-		result = new(T)
-		return Unpack(_result, result)
+		err := Unpack(_result, result)
+		if err == nil {
+			found = true
+		} else {
+			log.Println("Unpack FAILED: ", err)
+		}
+
+		return nil
 	})
 
-	return
+	return found
 }
 
 func InsertByID[T any](ctx *Context, bucketID BucketID, ID ID128, value *T) error {
@@ -72,7 +79,7 @@ func InsertByID[T any](ctx *Context, bucketID BucketID, ID ID128, value *T) erro
 			return BucketNotFoundError{}
 		}
 
-		_result, err := Pack(&value)
+		_result, err := Pack(value)
 		if err != nil {
 			return err
 		}
@@ -83,8 +90,8 @@ func InsertByID[T any](ctx *Context, bucketID BucketID, ID ID128, value *T) erro
 	return err
 }
 
-func Insert[T any](bucket *bolt.Bucket, ID ID128, value T) error {
-	binaryData, err := Pack(&value)
+func Insert[T any](bucket *bolt.Bucket, ID ID128, value *T) error {
+	binaryData, err := Pack(value)
 	if err != nil {
 		return err
 	}
@@ -160,6 +167,25 @@ func IterateRemove[V any](bucket *bolt.Bucket, iteratorProcedure func(key ID128,
 			bucket.Delete(key)
 		}
 	}
+}
+
+func IterateFind[V any](bucket *bolt.Bucket, target *V, iteratorProcedure func(key ID128, value *V) bool) (found bool) {
+	cursor := bucket.Cursor()
+	for key, value := cursor.First(); key != nil; key, value = cursor.Next() {
+		var theStruct V
+		err := Unpack(value, &theStruct)
+		if err != nil {
+			log.Printf("Unpack FAILED for ID %v, reason: %v", key, err)
+		}
+
+		if iteratorProcedure(ID128(key), &theStruct) {
+			*target = theStruct
+			found = true
+			break
+		}
+	}
+
+	return
 }
 
 func WriteTx(ctx *Context) (*bolt.Tx, error) {
