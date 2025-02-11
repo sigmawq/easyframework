@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	//"github.com/gorilla/mux"
 	ef "github.com/sigmawq/easyframework"
 	"log"
 	"net"
@@ -23,9 +24,9 @@ const (
 )
 
 type User struct {
-	ID       ef.ID128 `id:"1"`
-	Name     string   `id:"2"`
-	Password string   `id:"3"`
+	ID            ef.ID128 `id:"1"`
+	Name          string   `id:"2"`
+	Password      string   `id:"3"`
 	PreviousNames []string `id:"4"`
 }
 
@@ -170,12 +171,34 @@ func RPC_GetLog(context *ef.RequestContext, request GetLogRequest) (logtext stri
 	return
 }
 
+func RPC_RestTest(context *ef.RequestContext) (value []interface{}, problem ef.Problem) {
+	type Tuple struct {
+		Key   interface{}
+		Value interface{}
+	}
+
+	vars := context.Vars
+	for k, v := range vars {
+		value = append(value, Tuple{
+			Key:   k,
+			Value: v,
+		})
+	}
+
+	for k, v := range context.Request.URL.Query() {
+		value = append(value, Tuple{
+			k, v,
+		})
+	}
+	return
+}
+
 type Session struct {
-	ID            ef.ID128 `id:"1"`
-	UserID        ef.ID128 `id:"2"`
-	ExpiresAt     int64    `id:"3"`
-	AccessCount   int64    `id:"4"`
-	IP            string   `id:"5"`
+	ID          ef.ID128 `id:"1"`
+	UserID      ef.ID128 `id:"2"`
+	ExpiresAt   int64    `id:"3"`
+	AccessCount int64    `id:"4"`
+	IP          string   `id:"5"`
 }
 
 func Authorization(ctx *ef.RequestContext, w http.ResponseWriter, r *http.Request) bool {
@@ -231,15 +254,6 @@ func main() {
 	if err != nil {
 		log.Println("Error while initializing EF:", err)
 		return
-	}
-
-	{
-		first := ef.NewID128()
-		second := first.String()
-
-		var third ef.ID128
-		third.FromString(second)
-		log.Println(first, second, third)
 	}
 
 	if true {
@@ -321,10 +335,18 @@ func main() {
 	})
 
 	ef.NewRPC(efContext, ef.NewRPCParams{
-		Name:                         "docs.md",
-		Handler:                      RPC_GetDocumentation,
-		AuthorizationNotRequired:     true,
-		NoAutomaticResponseOnSuccess: true,
+		Name:                     "docs.md",
+		Handler:                  RPC_GetDocumentation,
+		AuthorizationNotRequired: true,
+		CustomResponse:           true,
+	})
+
+	ef.NewRPC(efContext, ef.NewRPCParams{
+		Name:                     "/resttest/{id}/yes",
+		Rest:                     true,
+		RestMethods:              "POST",
+		AuthorizationNotRequired: true,
+		Handler:                  RPC_RestTest,
 	})
 
 	ef.StaticContent(efContext, "documentation_reader.html", "documentation_reader/documentation_reader.html")

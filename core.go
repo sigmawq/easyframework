@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/boltdb/bolt"
+	"github.com/gorilla/mux"
 	"io"
 	"log"
 	"net/http"
@@ -19,15 +20,17 @@ import (
 )
 
 type Context struct {
-	Procedures    map[string]Procedure
-	StaticData    map[string]string
-	Port          int
-	DatabasePath  string
-	Database      *bolt.DB
-	Authorization func(*RequestContext, http.ResponseWriter, *http.Request) bool
-	StdoutLogging bool
-	FileLogging   bool
-	LogFile       *os.File
+	Procedures     map[string]Procedure
+	RestProcedures map[*mux.Route]Procedure
+	StaticData     map[string]string
+	Port           int
+	DatabasePath   string
+	Database       *bolt.DB
+	Authorization  func(*RequestContext, http.ResponseWriter, *http.Request) bool
+	StdoutLogging  bool
+	FileLogging    bool
+	LogFile        *os.File
+	GorillaRouter  *mux.Router
 }
 
 func (ctx Context) Write(bytes []byte) (int, error) {
@@ -42,18 +45,18 @@ func (ctx Context) Write(bytes []byte) (int, error) {
 }
 
 type Procedure struct {
-	Identifier                   string
-	Procedure                    reflect.Value
-	InputType                    reflect.Type
-	OutputType                   reflect.Type
-	ErrorType                    reflect.Type
-	Calls                        uint64
-	AuthorizationNotRequired     bool
-	Description                  string
-	Category                     string
-	Documentation                string
-	NoAutomaticResponseOnSuccess bool // @TODO: better system for static content
-	UserData                     interface{}
+	Identifier               string
+	Procedure                reflect.Value
+	InputType                reflect.Type
+	OutputType               reflect.Type
+	ErrorType                reflect.Type
+	Calls                    uint64
+	AuthorizationNotRequired bool
+	Description              string
+	Category                 string
+	Documentation            string
+	CustomResponse           bool
+	UserData                 interface{}
 }
 
 type InitializeParams struct {
@@ -61,11 +64,14 @@ type InitializeParams struct {
 	StdoutLogging bool
 	FileLogging   bool
 	DatabasePath  string
+	Rest          bool
+	RestMethods   []string
 	Authorization func(*RequestContext, http.ResponseWriter, *http.Request) bool
 }
 
 func Initialize(ctx *Context, params InitializeParams) error {
 	ctx.Procedures = make(map[string]Procedure)
+	ctx.RestProcedures = make(map[*mux.Route]Procedure)
 	ctx.FileLogging = params.FileLogging
 	ctx.StdoutLogging = params.StdoutLogging
 	ctx.Authorization = params.Authorization
@@ -101,6 +107,8 @@ func Initialize(ctx *Context, params InitializeParams) error {
 
 		log.SetOutput(ctx)
 	}
+
+	ctx.GorillaRouter = mux.NewRouter()
 
 	return nil
 }
@@ -159,23 +167,45 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	data, _ := io.ReadAll(request.Body)
 	log.Printf("[In] %v (%v): %v", request.RequestURI, requestID, string(data))
 
-	rpcIndex := strings.Index(request.RequestURI, "/rpc/")
-	// @TODO: Authorization for static content?
-	if rpcIndex == -1 { // Serve static content
-		staticName := strings.TrimLeft(request.RequestURI, "/")
-		filepath, ok := ef.StaticData[staticName]
-		if !ok {
-			RJson(writer, 400, Problem{
-				ErrorID: ERROR_STATIC_CONTENT_NOT_FOUND,
-			})
+	var procedure Procedure
+	var procedureFound bool
+
+	requestContext := RequestContext{
+		Procedure:      &procedure,
+		ResponseWriter: writer,
+		Request:        request,
+		RequestID:      requestID,
+	}
+	rpcIndex := strings.Index(request.URL.Path, "/rpc/")
+	if rpcIndex != -1 { // Regular RPC
+		procedureName := request.URL.Path[rpcIndex+len("/rpc/"):]
+		procedure, procedureFound = ef.Procedures[procedureName]
+	} else {
+		restIndex := strings.Index(request.URL.Path, "/rest/")
+		if restIndex != -1 { // Rest RPC
+			procedureName := request.URL.Path[rpcIndex+len("/rest/"):]
+			savedRequestURL := request.URL.Path // @NOTE: Hacky..
+			request.URL.Path = procedureName
+			var match mux.RouteMatch
+			if ef.GorillaRouter.Match(request, &match) {
+				procedure, procedureFound = ef.RestProcedures[match.Route]
+				requestContext.Vars = match.Vars
+			}
+			request.URL.Path = savedRequestURL
+		} else { // Static content
+			staticName := strings.TrimLeft(request.RequestURI, "/")
+			filepath, ok := ef.StaticData[staticName]
+			if !ok {
+				RJson(writer, 400, Problem{
+					ErrorID: ERROR_STATIC_CONTENT_NOT_FOUND,
+				})
+				return
+			}
+			http.ServeFile(writer, request, filepath)
 			return
 		}
-		http.ServeFile(writer, request, filepath)
-		return
 	}
-	procedureName := request.RequestURI[rpcIndex+len("/rpc/"):]
 
-	procedure, procedureFound := ef.Procedures[procedureName]
 	if !procedureFound {
 		RJson(writer, 400, Problem{
 			ErrorID: ERROR_PROCEDURE_NOT_FOUND,
@@ -184,12 +214,6 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	requestContext := RequestContext{
-		Procedure:      &procedure,
-		ResponseWriter: writer,
-		Request:        request,
-		RequestID:      requestID,
-	}
 	if !procedure.AuthorizationNotRequired {
 		if ef.Authorization != nil {
 			if !ef.Authorization(&requestContext, writer, request) {
@@ -274,19 +298,40 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	}
 	LookupErrorCode(problem)
 
+	responseText := ""
 	if errorCode == ERROR_NONE || errorCode == "" {
-		if !procedure.NoAutomaticResponseOnSuccess {
+		if !procedure.CustomResponse {
 			if procedure.OutputType != nil {
-				RJson(writer, 200, response.Interface())
+				data, err := json.Marshal(response.Interface())
+				if err != nil {
+					log.Printf("Error while trying to marshal json to send it as response: %v", err)
+					return
+				}
+				writer.Header().Set("Content-Type", "application/json")
+				writer.WriteHeader(200)
+				fmt.Fprintf(writer, string(data))
+				responseText = string(data)
 			}
 		}
 	} else {
-		RJson(writer, 400, problem.Interface())
+		data, err := json.Marshal(problem.Interface())
+		if err != nil {
+			log.Printf("Error while trying to marshal json to send it as response: %v", err)
+			return
+		}
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(400)
+		fmt.Fprintf(writer, string(data))
+		responseText = string(data)
 	}
 
 	then := time.Now()
 	diff := then.Sub(now)
-	log.Printf("[Out, %v] %v (%v)", diff, procedureName, requestID)
+
+	if len(responseText) > 10000 {
+		responseText = "<response body too big>"
+	}
+	log.Printf("[Out, %v] %v (%v): %v", diff, procedure.Identifier, requestID, responseText) // TODO: log response is small enough
 }
 
 type RequestContext struct {
@@ -295,23 +340,28 @@ type RequestContext struct {
 	Request        *http.Request
 	RequestID      string
 	SessionToken   string
+	Vars           map[string]string
 }
 
 type NewRPCParams struct {
-	Name                         string
-	Handler                      interface{}
-	AuthorizationNotRequired     bool
-	Description                  string
-	Category                     string
-	NoAutomaticResponseOnSuccess bool
-	UserData                     interface{}
+	Name                     string
+	Handler                  interface{}
+	AuthorizationNotRequired bool
+	Description              string
+	Category                 string
+	CustomResponse           bool
+	Rest                     bool
+	RestMethods              string
+	UserData                 interface{}
 }
 
 func NewRPC(efContext *Context, params NewRPCParams) {
-	_, identifierIsInUse := efContext.Procedures[params.Name]
-	if identifierIsInUse {
-		log.Printf("NewRPC(): procedure identifier already in use: %v", params.Name) // @TODO: Better error messages
-		panic("Cannot continue!")
+	if !params.Rest { // Rest procedures can be duplicated because of methods
+		_, identifierIsInUse := efContext.Procedures[params.Name]
+		if identifierIsInUse {
+			log.Printf("NewRPC(): procedure identifier already in use: %v", params.Name) // @TODO: Better error messages
+			panic("Cannot continue!")
+		}
 	}
 
 	handlerTypeof := reflect.TypeOf(params.Handler)
@@ -386,16 +436,16 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 		category = "Unknown category"
 	}
 	procedure := Procedure{
-		Identifier:                   params.Name,
-		Procedure:                    reflect.ValueOf(params.Handler),
-		InputType:                    inputTypeOf,
-		OutputType:                   outputTypeof,
-		ErrorType:                    errorTypeof,
-		AuthorizationNotRequired:     params.AuthorizationNotRequired,
-		Description:                  params.Description,
-		Category:                     params.Category,
-		NoAutomaticResponseOnSuccess: params.NoAutomaticResponseOnSuccess,
-		UserData:                     params.UserData,
+		Identifier:               params.Name,
+		Procedure:                reflect.ValueOf(params.Handler),
+		InputType:                inputTypeOf,
+		OutputType:               outputTypeof,
+		ErrorType:                errorTypeof,
+		AuthorizationNotRequired: params.AuthorizationNotRequired,
+		Description:              params.Description,
+		Category:                 params.Category,
+		CustomResponse:           params.CustomResponse,
+		UserData:                 params.UserData,
 	}
 	{ // Generate procedure documentation
 		var sb strings.Builder
@@ -421,7 +471,7 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 		sb.WriteString("<h4>Response:</h2>\n")
 		sb.WriteString("<code>")
 
-		if params.NoAutomaticResponseOnSuccess {
+		if params.CustomResponse {
 			sb.WriteString("Custom response\n")
 		} else if procedure.OutputType != nil {
 			TypeToMarkdown(&sb, reflect.New(procedure.OutputType).Interface())
@@ -438,7 +488,17 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 		procedure.Documentation = sb.String()
 	}
 
-	efContext.Procedures[params.Name] = procedure
+	if !params.Rest {
+		efContext.Procedures[params.Name] = procedure
+	} else {
+		route := efContext.GorillaRouter.NewRoute().Path(params.Name)
+		if route.GetError() != nil {
+			log.Println("Error while trying to initialize a rest path")
+			panic(route.GetError())
+		}
+		efContext.RestProcedures[route] = procedure
+	}
+
 }
 
 func StaticContent(context *Context, name, filepath string) {
@@ -530,7 +590,7 @@ func (id *ID128) FromString(str string) error {
 		highValue := table[highChar]
 		lowValue := table[lowChar]
 		if highValue == 0 || lowValue == 0 {
-			return errors.New("Invalid character in base32 encoding!")
+			return errors.New("Invalid character in our custom base16 encoding!")
 		}
 
 		id[k] = ((highValue - 1) << 4) | (lowValue - 1)
