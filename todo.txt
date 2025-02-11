@@ -1,7 +1,7 @@
-normie routing: - not really needed, just use a separate gorilla mux router with correspoding handlers or whatever
-    routing itself
-    query args
-    path args
+normie routing: - 
+    routing itself - DONE
+    query args - DONE (was not really needed as you can trivially get those from http.Request)
+    path args - DONE
 id128:
     json marshal/unmarshal - DONE
 validator: 

@@ -449,8 +449,12 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 	}
 	{ // Generate procedure documentation
 		var sb strings.Builder
-
-		sb.WriteString(fmt.Sprintf("<h3 class=\"leftpad_10\"> <b>URL: rpc/%v</b> </h3>\n", procedure.Identifier))
+			
+		urlPrefix := "rpc/"
+		if params.Rest {
+			urlPrefix = "rest"
+		}
+		sb.WriteString(fmt.Sprintf("<h3 class=\"leftpad_10\"> <b>URL: %v%v</b> </h3>\n", urlPrefix, procedure.Identifier))
 
 		sb.WriteString("<div class=\"rpc_description\">\n")
 

@@ -147,27 +147,34 @@ func ParseFieldDescription(field reflect.StructField) string {
 }
 
 func GetDocumentation(context *Context, filter string) string {
-	proceduresByCategory := make(map[string]*[]string, 0)
-	for procedureName, procedure := range context.Procedures {
+	proceduresByCategory := make(map[string]*[]*Procedure, 0)
+
+	HandleProcedure := func(procedure *Procedure) {
 		if filter != "" {
 			if !strings.Contains(strings.ToLower(procedure.Identifier), strings.ToLower(filter)) {
-				continue
+				return
 			}
 		}
 
 		proceduresInThisCategory, ok := proceduresByCategory[procedure.Category]
 		if !ok {
-			_proceduresInThisCategory := make([]string, 0)
+			_proceduresInThisCategory := make([]*Procedure, 0)
 			proceduresInThisCategory = &_proceduresInThisCategory
 			proceduresByCategory[procedure.Category] = proceduresInThisCategory
 		}
 
-		*proceduresInThisCategory = append(*proceduresInThisCategory, procedureName)
+		*proceduresInThisCategory = append(*proceduresInThisCategory, procedure)
+	}
+	for _, procedure := range context.Procedures {
+		HandleProcedure(&procedure)
+	}
+	for _, procedure := range context.RestProcedures {
+		HandleProcedure(&procedure)
 	}
 
 	type CategoryProcedures struct {
 		Category   string
-		Procedures *[]string
+		Procedures *[]*Procedure
 	}
 	var proceduresByCategoryOrdered []CategoryProcedures
 	for categoryName, procedures := range proceduresByCategory {
@@ -181,8 +188,8 @@ func GetDocumentation(context *Context, filter string) string {
 	})
 	for _, categoryProcedures := range proceduresByCategoryOrdered {
 		sort.SliceStable(*categoryProcedures.Procedures, func(i, j int) bool {
-			ith := (*categoryProcedures.Procedures)[i]
-			jth := (*categoryProcedures.Procedures)[j]
+			ith := (*categoryProcedures.Procedures)[i].Identifier
+			jth := (*categoryProcedures.Procedures)[j].Identifier
 			return strings.Compare(ith, jth) == -1
 		})
 	}
@@ -197,8 +204,8 @@ func GetDocumentation(context *Context, filter string) string {
 		}
 		sb.WriteString(fmt.Sprintf("<summary><b>%v (%v)</b></summary>\n", categoryName, len(*categoryProcedures.Procedures)))
 
-		for _, procedureName := range *categoryProcedures.Procedures {
-			sb.WriteString(context.Procedures[procedureName].Documentation)
+		for _, procedure := range *categoryProcedures.Procedures {
+			sb.WriteString(procedure.Documentation)
 		}
 
 		sb.WriteString("</details>\n")
