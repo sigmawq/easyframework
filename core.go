@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"reflect"
@@ -31,6 +32,7 @@ type Context struct {
 	FileLogging    bool
 	LogFile        *os.File
 	GorillaRouter  *mux.Router
+	RateLimiter    RateLimiter
 }
 
 func (ctx Context) Write(bytes []byte) (int, error) {
@@ -60,13 +62,14 @@ type Procedure struct {
 }
 
 type InitializeParams struct {
-	Port          int
-	StdoutLogging bool
-	FileLogging   bool
-	DatabasePath  string
-	Rest          bool
-	RestMethods   []string
-	Authorization func(*RequestContext, http.ResponseWriter, *http.Request) bool
+	Port                 int
+	StdoutLogging        bool
+	FileLogging          bool
+	DatabasePath         string
+	Rest                 bool
+	RestMethods          []string
+	Authorization        func(*RequestContext, http.ResponseWriter, *http.Request) bool
+	MaxRequestsPerMinute int
 }
 
 func Initialize(ctx *Context, params InitializeParams) error {
@@ -79,6 +82,17 @@ func Initialize(ctx *Context, params InitializeParams) error {
 	ctx.StaticData = make(map[string]string)
 
 	CreateDirectoryIfDoesntExist("logs")
+
+	ctx.RateLimiter.MaxRequestsPerMinute = params.MaxRequestsPerMinute
+	if ctx.RateLimiter.MaxRequestsPerMinute == 0 {
+		ctx.RateLimiter.MaxRequestsPerMinute = 120
+	}
+	{
+		_map := make(map[string]int, 0)
+		ctx.RateLimiter.UserRequestsCount = &_map
+	}
+
+	go RateLimiterRoutine(ctx)
 
 	if params.DatabasePath != "" { // Setup database
 		database, err := bolt.Open(params.DatabasePath, 0777, nil)
@@ -165,7 +179,14 @@ func (ef *Context) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 
 	requestID := NewID128().String()
 	data, _ := io.ReadAll(request.Body)
-	log.Printf("[In] %v (%v): %v", request.RequestURI, requestID, string(data))
+	ip, _, _ := net.SplitHostPort(request.RemoteAddr)
+	log.Printf("[%v][In] %v (%v): %v", ip, request.RequestURI, requestID, string(data))
+
+	requestCount, shouldBeRateLimited := ShouldRequestBeRateLimited(ef, writer, request)
+	if shouldBeRateLimited {
+		log.Printf("[Rate limited (%v)]", requestCount)
+		return
+	}
 
 	var procedure Procedure
 	var procedureFound bool
@@ -449,7 +470,7 @@ func NewRPC(efContext *Context, params NewRPCParams) {
 	}
 	{ // Generate procedure documentation
 		var sb strings.Builder
-			
+
 		urlPrefix := "rpc/"
 		if params.Rest {
 			urlPrefix = "rest"

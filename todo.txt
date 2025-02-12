@@ -15,5 +15,6 @@ database:
 	format:
 		handle slice encoding/decoding
 rate limiter
+config utilities
 	
 return error list for all NewRPC() calls, don't panic on the first one

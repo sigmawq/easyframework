@@ -244,11 +244,12 @@ type CustomProcedurePermission struct {
 func main() {
 	efContext = new(ef.Context)
 	params := ef.InitializeParams{
-		Port:          6600,
-		StdoutLogging: true,
-		FileLogging:   true,
-		DatabasePath:  "db",
-		Authorization: Authorization,
+		Port:                 6600,
+		StdoutLogging:        true,
+		FileLogging:          true,
+		DatabasePath:         "db",
+		Authorization:        Authorization,
+		MaxRequestsPerMinute: 5,
 	}
 	err := ef.Initialize(efContext, params)
 	if err != nil {
